@@ -1,0 +1,1376 @@
+{
+  "dim": 1536,
+  "count": 89,
+  "skipped": 0,
+  "items": [
+    {
+      "imdbId": "tt1375666",
+      "id": null,
+      "key": "tt1375666",
+      "title": "Inception",
+      "year": "2010",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Thriller",
+        "Sci-Fi",
+        "Action",
+        "Adventure"
+      ]
+    },
+    {
+      "imdbId": "tt28332337",
+      "id": null,
+      "key": "tt28332337",
+      "title": "Eephus",
+      "year": "2024",
+      "genre": "Comedy, Drama",
+      "productionCountry": "United States of America, France, Singapore",
+      "moodTags": [
+        "Humorous",
+        "Warm"
+      ]
+    },
+    {
+      "imdbId": "tt16311594",
+      "id": null,
+      "key": "tt16311594",
+      "title": "F1: The Movie",
+      "year": "2025",
+      "genre": "Action, Drama, Sport",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Tense",
+        "Exciting",
+        "Inspirational"
+      ]
+    },
+    {
+      "imdbId": "tt10210064",
+      "id": null,
+      "key": "tt10210064",
+      "title": "Bureau 749",
+      "year": "2024",
+      "genre": "Action, Adventure, Drama",
+      "productionCountry": "China",
+      "moodTags": [
+        "Adventure",
+        "Sci-Fi",
+        "Thriller",
+        "Suspense",
+        "Dark",
+        "Exciting"
+      ]
+    },
+    {
+      "imdbId": "tt6604188",
+      "id": null,
+      "key": "tt6604188",
+      "title": "Tron: Ares",
+      "year": "2025",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Exciting",
+        "Sci-Fi",
+        "Adventure",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt5311514",
+      "id": null,
+      "key": "tt5311514",
+      "title": "Your Name.",
+      "year": "2016",
+      "genre": "Animation, Drama, Fantasy",
+      "productionCountry": "Japan",
+      "moodTags": [
+        "Romantic",
+        "Fantasy",
+        "Touching"
+      ]
+    },
+    {
+      "imdbId": "tt0167261",
+      "id": null,
+      "key": "tt0167261",
+      "title": "The Lord of the Rings: The Two Towers",
+      "year": "2002",
+      "genre": "Adventure, Drama, Fantasy",
+      "productionCountry": "New Zealand, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Epic",
+        "Thriller",
+        "Action"
+      ]
+    },
+    {
+      "imdbId": "tt31434030",
+      "id": null,
+      "key": "tt31434030",
+      "title": "Dracula",
+      "year": "2025",
+      "genre": "Fantasy, Horror, Romance",
+      "productionCountry": "France",
+      "moodTags": [
+        "Horror",
+        "Romantic",
+        "Dark"
+      ]
+    },
+    {
+      "imdbId": "tt1262426",
+      "id": null,
+      "key": "tt1262426",
+      "title": "Wicked",
+      "year": "2024",
+      "genre": "Fantasy, Musical, Romance",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Fantasy",
+        "Romantic",
+        "Inspirational",
+        "Dark"
+      ]
+    },
+    {
+      "imdbId": "tt16431870",
+      "id": null,
+      "key": "tt16431870",
+      "title": "The Family Plan",
+      "year": "2023",
+      "genre": "Action, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Family",
+        "Tense",
+        "Thriller",
+        "Suspense",
+        "Dark"
+      ]
+    },
+    {
+      "imdbId": "tt0126029",
+      "id": null,
+      "key": "tt0126029",
+      "title": "Shrek",
+      "year": "2001",
+      "genre": "Animation, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Humorous",
+        "Fantasy",
+        "Adventure",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt0170016",
+      "id": null,
+      "key": "tt0170016",
+      "title": "How the Grinch Stole Christmas",
+      "year": "2000",
+      "genre": "Comedy, Family, Fantasy",
+      "productionCountry": "United States of America, Germany",
+      "moodTags": [
+        "Humorous",
+        "Family",
+        "Fantasy",
+        "Positive",
+        "Touching"
+      ]
+    },
+    {
+      "imdbId": "tt5160874",
+      "id": null,
+      "key": "tt5160874",
+      "title": "My Fault... Forever",
+      "year": "2023",
+      "genre": "Drama",
+      "productionCountry": null,
+      "moodTags": [
+        "Sad",
+        "Healing"
+      ]
+    },
+    {
+      "imdbId": "tt0111161",
+      "id": null,
+      "key": "tt0111161",
+      "title": "The Shawshank Redemption",
+      "year": "1994",
+      "genre": "Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Crime"
+      ]
+    },
+    {
+      "imdbId": "tt14205554",
+      "id": null,
+      "key": "tt14205554",
+      "title": "KPop Demon Hunters",
+      "year": "2025",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Fantasy",
+        "Action",
+        "Adventure",
+        "Humorous"
+      ]
+    },
+    {
+      "imdbId": "tt18259086",
+      "id": null,
+      "key": "tt18259086",
+      "title": "Sonic the Hedgehog 3",
+      "year": "2024",
+      "genre": "Action, Adventure, Comedy",
+      "productionCountry": "United States of America, Japan",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Family",
+        "Sci-Fi"
+      ]
+    },
+    {
+      "imdbId": "tt7510222",
+      "id": null,
+      "key": "tt7510222",
+      "title": "Despicable Me 4",
+      "year": "2024",
+      "genre": "Animation, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Family",
+        "Adventure",
+        "Sci-Fi",
+        "Exciting",
+        "Humorous"
+      ]
+    },
+    {
+      "imdbId": "tt0926084",
+      "id": null,
+      "key": "tt0926084",
+      "title": "Harry Potter and the Deathly Hallows: Part 1",
+      "year": "2010",
+      "genre": "Adventure, Family, Fantasy",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Tense",
+        "Dark",
+        "Exciting",
+        "Epic"
+      ]
+    },
+    {
+      "imdbId": "tt0314331",
+      "id": null,
+      "key": "tt0314331",
+      "title": "Love Actually",
+      "year": "2003",
+      "genre": "Comedy, Drama, Romance",
+      "productionCountry": "France, United Kingdom, United States of America",
+      "moodTags": [
+        "Warm",
+        "Touching",
+        "Humorous",
+        "Romantic",
+        "Joyful"
+      ]
+    },
+    {
+      "imdbId": "tt0083866",
+      "id": null,
+      "key": "tt0083866",
+      "title": "E.T. the Extra-Terrestrial",
+      "year": "1982",
+      "genre": "Adventure, Family, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Warm",
+        "Touching",
+        "Family",
+        "Adventure",
+        "Sci-Fi",
+        "Fantasy"
+      ]
+    },
+    {
+      "imdbId": "tt9150192",
+      "id": null,
+      "key": "tt9150192",
+      "title": "A Working Man",
+      "year": "2025",
+      "genre": "Action, Thriller",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Action",
+        "Thriller",
+        "Tense",
+        "Crime",
+        "Dark",
+        "Exciting"
+      ]
+    },
+    {
+      "imdbId": "tt2709692",
+      "id": null,
+      "key": "tt2709692",
+      "title": "The Grinch",
+      "year": "2018",
+      "genre": "Animation, Comedy, Family",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Family",
+        "Warm",
+        "Humorous"
+      ]
+    },
+    {
+      "imdbId": "tt0109830",
+      "id": null,
+      "key": "tt0109830",
+      "title": "Forrest Gump",
+      "year": "1994",
+      "genre": "Drama, Romance",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Touching",
+        "Humorous",
+        "Inspirational",
+        "Romantic",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt4154756",
+      "id": null,
+      "key": "tt4154756",
+      "title": "Avengers: Infinity War",
+      "year": "2018",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Exciting",
+        "Epic",
+        "Action"
+      ]
+    },
+    {
+      "imdbId": "tt2543164",
+      "id": null,
+      "key": "tt2543164",
+      "title": "Arrival",
+      "year": "2016",
+      "genre": "Drama, Mystery, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Sci-Fi",
+        "Inspirational"
+      ]
+    },
+    {
+      "imdbId": "tt0417741",
+      "id": null,
+      "key": "tt0417741",
+      "title": "Harry Potter and the Half-Blood Prince",
+      "year": "2009",
+      "genre": "Action, Adventure, Family",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Dark",
+        "Tense"
+      ]
+    },
+    {
+      "imdbId": "tt0993846",
+      "id": null,
+      "key": "tt0993846",
+      "title": "The Wolf of Wall Street",
+      "year": "2013",
+      "genre": "Biography, Comedy, Crime",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Crime",
+        "Dark",
+        "Humorous",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt0816692",
+      "id": null,
+      "key": "tt0816692",
+      "title": "Interstellar",
+      "year": "2014",
+      "genre": "Adventure, Drama, Sci-Fi",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Sci-Fi",
+        "Adventure"
+      ]
+    },
+    {
+      "imdbId": "tt2948356",
+      "id": null,
+      "key": "tt2948356",
+      "title": "Zootopia",
+      "year": "2016",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Adventure",
+        "Family",
+        "Humorous",
+        "Positive",
+        "Inspirational"
+      ]
+    },
+    {
+      "imdbId": "tt0093773",
+      "id": null,
+      "key": "tt0093773",
+      "title": "Predator",
+      "year": "1987",
+      "genre": "Action, Adventure, Horror",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Horror",
+        "Thriller",
+        "Sci-Fi",
+        "Action"
+      ]
+    },
+    {
+      "imdbId": "tt1646971",
+      "id": null,
+      "key": "tt1646971",
+      "title": "How to Train Your Dragon 2",
+      "year": "2014",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Adventure",
+        "Action",
+        "Family",
+        "Fantasy",
+        "Exciting",
+        "Positive",
+        "Inspirational"
+      ]
+    },
+    {
+      "imdbId": "tt31036941",
+      "id": null,
+      "key": "tt31036941",
+      "title": "Jurassic World: Rebirth",
+      "year": "2025",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Exciting",
+        "Adventure",
+        "Tense",
+        "Sci-Fi"
+      ]
+    },
+    {
+      "imdbId": "tt0330373",
+      "id": null,
+      "key": "tt0330373",
+      "title": "Harry Potter and the Goblet of Fire",
+      "year": "2005",
+      "genre": "Adventure, Family, Fantasy",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Tense",
+        "Dark",
+        "Exciting",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt31193180",
+      "id": null,
+      "key": "tt31193180",
+      "title": "Sinners",
+      "year": "2025",
+      "genre": "Action, Drama, Horror",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Action",
+        "Thriller",
+        "Dark",
+        "Tense"
+      ]
+    },
+    {
+      "imdbId": "tt26342662",
+      "id": null,
+      "key": "tt26342662",
+      "title": "M3GAN 2.0",
+      "year": "2025",
+      "genre": "Action, Sci-Fi, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Sci-Fi",
+        "Thriller",
+        "Suspense",
+        "Dark",
+        "Exciting"
+      ]
+    },
+    {
+      "imdbId": "tt0848228",
+      "id": null,
+      "key": "tt0848228",
+      "title": "The Avengers",
+      "year": "2012",
+      "genre": "Action, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Exciting",
+        "Action",
+        "Adventure",
+        "Sci-Fi"
+      ]
+    },
+    {
+      "imdbId": "tt0120338",
+      "id": null,
+      "key": "tt0120338",
+      "title": "Titanic",
+      "year": "1997",
+      "genre": "Drama, Romance",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Romantic"
+      ]
+    },
+    {
+      "imdbId": "tt1630029",
+      "id": null,
+      "key": "tt1630029",
+      "title": "Avatar: The Way of Water",
+      "year": "2022",
+      "genre": "Action, Adventure, Fantasy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Sci-Fi",
+        "Family",
+        "Epic"
+      ]
+    },
+    {
+      "imdbId": "tt0295701",
+      "id": null,
+      "key": "tt0295701",
+      "title": "xXx",
+      "year": "2002",
+      "genre": "Action, Adventure, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Exciting",
+        "Thriller",
+        "Adventure",
+        "Positive"
+      ]
+    },
+    {
+      "imdbId": "tt3566834",
+      "id": null,
+      "key": "tt3566834",
+      "title": "A Minecraft Movie",
+      "year": "2025",
+      "genre": "Action, Adventure, Comedy",
+      "productionCountry": "Sweden, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Action",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt20969586",
+      "id": null,
+      "key": "tt20969586",
+      "title": "Thunderbolts*",
+      "year": "2025",
+      "genre": "Action, Adventure, Crime",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Dark",
+        "Thriller",
+        "Sci-Fi"
+      ]
+    },
+    {
+      "imdbId": "tt30017619",
+      "id": null,
+      "key": "tt30017619",
+      "title": "The Bad Guys 2",
+      "year": "2025",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Family",
+        "Adventure",
+        "Joyful",
+        "Action",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt22022452",
+      "id": null,
+      "key": "tt22022452",
+      "title": "Inside Out 2",
+      "year": "2024",
+      "genre": "Animation, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Warm",
+        "Touching",
+        "Humorous",
+        "Family",
+        "Coming-of-age"
+      ]
+    },
+    {
+      "imdbId": "tt13186306",
+      "id": null,
+      "key": "tt13186306",
+      "title": "War of the Worlds",
+      "year": "2025",
+      "genre": "Horror, Sci-Fi, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Sci-Fi",
+        "Thriller",
+        "Tense",
+        "Dark",
+        "Oppressive",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt1396484",
+      "id": null,
+      "key": "tt1396484",
+      "title": "It",
+      "year": "2017",
+      "genre": "Horror",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Thriller",
+        "Dark",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt0468569",
+      "id": null,
+      "key": "tt0468569",
+      "title": "The Dark Knight",
+      "year": "2008",
+      "genre": "Action, Crime, Drama",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Thriller",
+        "Sad",
+        "Action",
+        "Crime"
+      ]
+    },
+    {
+      "imdbId": "tt12037194",
+      "id": null,
+      "key": "tt12037194",
+      "title": "Furiosa: A Mad Max Saga",
+      "year": "2024",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "Australia, United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Thriller",
+        "War"
+      ]
+    },
+    {
+      "imdbId": "tt10374610",
+      "id": null,
+      "key": "tt10374610",
+      "title": "The Long Walk",
+      "year": "2025",
+      "genre": "Horror, Sci-Fi, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt7181546",
+      "id": null,
+      "key": "tt7181546",
+      "title": "Ballerina",
+      "year": "2025",
+      "genre": "Action, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Action",
+        "Thriller",
+        "Crime"
+      ]
+    },
+    {
+      "imdbId": "tt6263850",
+      "id": null,
+      "key": "tt6263850",
+      "title": "Deadpool & Wolverine",
+      "year": "2024",
+      "genre": "Action, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Sci-Fi",
+        "Exciting",
+        "Adventure"
+      ]
+    },
+    {
+      "imdbId": "tt26743210",
+      "id": null,
+      "key": "tt26743210",
+      "title": "How to Train Your Dragon",
+      "year": "2025",
+      "genre": "Action, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Adventure",
+        "Family",
+        "Fantasy",
+        "Action",
+        "Inspirational",
+        "Positive"
+      ]
+    },
+    {
+      "imdbId": "tt0110912",
+      "id": null,
+      "key": "tt0110912",
+      "title": "Pulp Fiction",
+      "year": "1994",
+      "genre": "Crime, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Humorous",
+        "Crime",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt11389872",
+      "id": null,
+      "key": "tt11389872",
+      "title": "Kingdom of the Planet of the Apes",
+      "year": "2024",
+      "genre": "Action, Adventure, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Sci-Fi",
+        "Tense",
+        "Dark",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt0133093",
+      "id": null,
+      "key": "tt0133093",
+      "title": "The Matrix",
+      "year": "1999",
+      "genre": "Action, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Sci-Fi",
+        "Thriller",
+        "Dark",
+        "Exciting",
+        "Oppressive"
+      ]
+    },
+    {
+      "imdbId": "tt10627720",
+      "id": null,
+      "key": "tt10627720",
+      "title": "Ne Zha",
+      "year": "2019",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "China",
+      "moodTags": [
+        "Fantasy",
+        "Adventure",
+        "Action",
+        "Coming-of-age"
+      ]
+    },
+    {
+      "imdbId": "tt0363771",
+      "id": null,
+      "key": "tt0363771",
+      "title": "The Chronicles of Narnia: The Lion, the Witch and the Wardrobe",
+      "year": "2005",
+      "genre": "Adventure, Family, Fantasy",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Family",
+        "Fantasy",
+        "Inspirational",
+        "Positive",
+        "Epic",
+        "Healing"
+      ]
+    },
+    {
+      "imdbId": "tt30144839",
+      "id": null,
+      "key": "tt30144839",
+      "title": "One Battle After Another",
+      "year": "2025",
+      "genre": "Action, Crime, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Thriller",
+        "Action",
+        "Oppressive",
+        "Dark"
+      ]
+    },
+    {
+      "imdbId": "tt2177771",
+      "id": null,
+      "key": "tt2177771",
+      "title": "The Monuments Men",
+      "year": "2014",
+      "genre": "Biography, Comedy, Drama",
+      "productionCountry": "Germany, United States of America",
+      "moodTags": [
+        "War",
+        "Action"
+      ]
+    },
+    {
+      "imdbId": "tt4900148",
+      "id": null,
+      "key": "tt4900148",
+      "title": "Elio",
+      "year": "2025",
+      "genre": "Animation, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Family",
+        "Adventure",
+        "Coming-of-age"
+      ]
+    },
+    {
+      "imdbId": "tt0499549",
+      "id": null,
+      "key": "tt0499549",
+      "title": "Avatar",
+      "year": "2009",
+      "genre": "Action, Adventure, Fantasy",
+      "productionCountry": "United States of America, United Kingdom",
+      "moodTags": [
+        "Exciting",
+        "Adventure",
+        "Sci-Fi",
+        "Epic",
+        "Romantic"
+      ]
+    },
+    {
+      "imdbId": "tt4589218",
+      "id": null,
+      "key": "tt4589218",
+      "title": "Five Nights at Freddy's",
+      "year": "2023",
+      "genre": "Horror, Mystery, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Tense",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt12300742",
+      "id": null,
+      "key": "tt12300742",
+      "title": "Bugonia",
+      "year": "2025",
+      "genre": "Comedy, Crime, Sci-Fi",
+      "productionCountry": "Ireland, South Korea, United States of America, Canada",
+      "moodTags": [
+        "Humorous",
+        "Dark",
+        "Sci-Fi",
+        "Crime"
+      ]
+    },
+    {
+      "imdbId": "tt5950044",
+      "id": null,
+      "key": "tt5950044",
+      "title": "Superman",
+      "year": "2025",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Exciting",
+        "Adventure",
+        "Sci-Fi"
+      ]
+    },
+    {
+      "imdbId": "tt0073195",
+      "id": null,
+      "key": "tt0073195",
+      "title": "Jaws",
+      "year": "1975",
+      "genre": "Adventure, Horror, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Horror",
+        "Adventure"
+      ]
+    },
+    {
+      "imdbId": "tt28996126",
+      "id": null,
+      "key": "tt28996126",
+      "title": "Nobody 2",
+      "year": "2025",
+      "genre": "Action, Comedy, Crime",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Thriller",
+        "Dark",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt9603208",
+      "id": null,
+      "key": "tt9603208",
+      "title": "Mission: Impossible - The Final Reckoning",
+      "year": "2025",
+      "genre": "Action, Adventure, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Exciting",
+        "Thriller",
+        "Action",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt26581740",
+      "id": null,
+      "key": "tt26581740",
+      "title": "Weapons",
+      "year": "2025",
+      "genre": "Horror, Mystery",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Tense",
+        "Dark"
+      ]
+    },
+    {
+      "imdbId": "tt29344903",
+      "id": null,
+      "key": "tt29344903",
+      "title": "The Ugly Stepsister",
+      "year": "2025",
+      "genre": "Comedy, Drama, Horror",
+      "productionCountry": "Denmark, Norway, Poland, Sweden",
+      "moodTags": [
+        "Horror",
+        "Dark",
+        "Fantasy"
+      ]
+    },
+    {
+      "imdbId": "tt29644189",
+      "id": null,
+      "key": "tt29644189",
+      "title": "Black Phone 2",
+      "year": "2025",
+      "genre": "Horror",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Thriller",
+        "Dark",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt1312221",
+      "id": null,
+      "key": "tt1312221",
+      "title": "Frankenstein",
+      "year": "2025",
+      "genre": "Drama, Fantasy, Horror",
+      "productionCountry": "United States of America, Canada",
+      "moodTags": [
+        "Dark",
+        "Horror"
+      ]
+    },
+    {
+      "imdbId": "tt0068646",
+      "id": null,
+      "key": "tt0068646",
+      "title": "The Godfather",
+      "year": "1972",
+      "genre": "Crime, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Crime",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt3402138",
+      "id": null,
+      "key": "tt3402138",
+      "title": "The Naked Gun",
+      "year": "2025",
+      "genre": "Action, Comedy, Crime",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Humorous",
+        "Action"
+      ]
+    },
+    {
+      "imdbId": "tt31227572",
+      "id": null,
+      "key": "tt31227572",
+      "title": "Predator: Badlands",
+      "year": "2025",
+      "genre": "Action, Adventure, Sci-Fi",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Sci-Fi",
+        "Exciting"
+      ]
+    },
+    {
+      "imdbId": "tt0295297",
+      "id": null,
+      "key": "tt0295297",
+      "title": "Harry Potter and the Chamber of Secrets",
+      "year": "2002",
+      "genre": "Adventure, Family, Fantasy",
+      "productionCountry": "United Kingdom, United States of America, Germany",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Tense"
+      ]
+    },
+    {
+      "imdbId": "tt0104431",
+      "id": null,
+      "key": "tt0104431",
+      "title": "Home Alone 2: Lost in New York",
+      "year": "1992",
+      "genre": "Adventure, Comedy, Crime",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Humorous",
+        "Family",
+        "Adventure",
+        "Warm"
+      ]
+    },
+    {
+      "imdbId": "tt26443597",
+      "id": null,
+      "key": "tt26443597",
+      "title": "Zootopia 2",
+      "year": "2025",
+      "genre": "Animation, Action, Adventure",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Adventure",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt1201607",
+      "id": null,
+      "key": "tt1201607",
+      "title": "Harry Potter and the Deathly Hallows: Part 2",
+      "year": "2011",
+      "genre": "Adventure, Family, Fantasy",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Adventure",
+        "Fantasy",
+        "Tense",
+        "Exciting",
+        "Epic"
+      ]
+    },
+    {
+      "imdbId": "tt9619824",
+      "id": null,
+      "key": "tt9619824",
+      "title": "Final Destination: Bloodlines",
+      "year": "2025",
+      "genre": "Horror, Thriller",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Horror",
+        "Thriller",
+        "Tense",
+        "Dark",
+        "Suspense",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt13622970",
+      "id": null,
+      "key": "tt13622970",
+      "title": "Moana 2",
+      "year": "2024",
+      "genre": "Animation, Adventure, Comedy",
+      "productionCountry": "Canada, United States of America",
+      "moodTags": [
+        "Family",
+        "Adventure",
+        "Fantasy",
+        "Epic",
+        "Touching"
+      ]
+    },
+    {
+      "imdbId": "tt14948432",
+      "id": null,
+      "key": "tt14948432",
+      "title": "Red One",
+      "year": "2024",
+      "genre": "Action, Adventure, Comedy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Exciting",
+        "Thriller",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt8946378",
+      "id": null,
+      "key": "tt8946378",
+      "title": "Knives Out",
+      "year": "2019",
+      "genre": "Comedy, Crime, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Humorous",
+        "Dark",
+        "Suspense",
+        "Crime",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt0373889",
+      "id": null,
+      "key": "tt0373889",
+      "title": "Harry Potter and the Order of the Phoenix",
+      "year": "2007",
+      "genre": "Action, Adventure, Family",
+      "productionCountry": "United Kingdom, United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Fantasy",
+        "Tense",
+        "Dark",
+        "Sad"
+      ]
+    },
+    {
+      "imdbId": "tt12731980",
+      "id": null,
+      "key": "tt12731980",
+      "title": "Old Henry",
+      "year": "2021",
+      "genre": "Action, Drama, Western",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Action",
+        "Suspense",
+        "Dark",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt1527793",
+      "id": null,
+      "key": "tt1527793",
+      "title": "No Other Choice",
+      "year": "2025",
+      "genre": "Comedy, Crime, Drama",
+      "productionCountry": "South Korea, France",
+      "moodTags": [
+        "Dark",
+        "Crime",
+        "Thriller"
+      ]
+    },
+    {
+      "imdbId": "tt14364480",
+      "id": null,
+      "key": "tt14364480",
+      "title": "Wake Up Dead Man: A Knives Out Mystery",
+      "year": "2025",
+      "genre": "Comedy, Crime, Drama",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Tense",
+        "Thriller",
+        "Dark",
+        "Suspense"
+      ]
+    },
+    {
+      "imdbId": "tt1757678",
+      "id": null,
+      "key": "tt1757678",
+      "title": "Avatar: Fire and Ash",
+      "year": "2025",
+      "genre": "Action, Adventure, Fantasy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Action",
+        "Adventure",
+        "Sci-Fi",
+        "Epic",
+        "Tense",
+        "Thriller",
+        "Family"
+      ]
+    },
+    {
+      "imdbId": "tt31956415",
+      "id": null,
+      "key": "tt31956415",
+      "title": "Freakier Friday",
+      "year": "2025",
+      "genre": "Comedy, Family, Fantasy",
+      "productionCountry": "United States of America",
+      "moodTags": [
+        "Humorous",
+        "Family",
+        "Warm",
+        "Touching"
+      ]
+    },
+    {
+      "imdbId": "tt4076760",
+      "id": null,
+      "key": "tt4076760",
+      "title": "Diablo",
+      "year": "2015",
+      "genre": "Action, Adventure, Drama",
+      "productionCountry": "Canada, United States of America",
+      "moodTags": [
+        "Tense",
+        "Dark",
+        "Thriller",
+        "Action",
+        "Adventure"
+      ]
+    },
+    {
+      "imdbId": "tt2084970",
+      "id": null,
+      "key": "tt2084970",
+      "title": "The Imitation Game",
+      "year": "2014",
+      "genre": "Biography, Drama, Thriller",
+      "productionCountry": "United States of America, United Kingdom",
+      "moodTags": [
+        "Tense",
+        "War",
+        "Thriller",
+        "Sad"
+      ]
+    }
+  ]
+}
