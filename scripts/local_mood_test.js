@@ -108,7 +108,7 @@ for (const q of queries) {
     return { imdbId: m.imdbId, title: m.title, year: m.year, moodTags: m.moodTags, sim, lexicalBoost, moodBoost, score, movieText };
   }).filter(Boolean);
 
-  // before: remove mood hints
+  
   const scoredBefore = scored.map((s) => ({ ...s, score: s.score - s.moodBoost, moodBoost: 0 }));
 
   scoredBefore.sort((a,b) => b.score - a.score);

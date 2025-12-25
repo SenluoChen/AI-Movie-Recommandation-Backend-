@@ -12,12 +12,6 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Expected env vars:
-# - LOCAL_DATA_PATH (e.g. C:\Users\Louis\Visual Studio\Popcorn\Movie-data)
-# - OPENAI_API_KEY
-# - TMDB_API_KEY
-# Optional:
-# - OMDB_API_KEY
 
 if (-not $env:LOCAL_DATA_PATH) { throw 'Missing LOCAL_DATA_PATH env var.' }
 if (-not $env:OPENAI_API_KEY) { throw 'Missing OPENAI_API_KEY env var.' }
@@ -46,7 +40,6 @@ if ($Fresh) { $cmd += '--fresh' }
 Write-Host ('Running: ' + ($cmd -join ' '))
 & $cmd[0] $cmd[1..($cmd.Length-1)]
 
-# Build FAISS index (requires python deps in Popcorn/vector-service).
 Write-Host 'Building FAISS index...'
 Push-Location .\Popcorn\vector-service
 python .\build_index.py --local-data-path $env:LOCAL_DATA_PATH

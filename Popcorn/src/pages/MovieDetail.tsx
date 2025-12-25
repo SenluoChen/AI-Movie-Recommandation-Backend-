@@ -1,34 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/footer";
 import { getDefaultRegion } from "../utils/recommendMovies";
+import type { MovieRecommendation } from "../utils/recommendMovies";
 import {
   tmdbGetMovieCredits,
   tmdbGetMovieDetails,
   tmdbGetWatchProviders,
   tmdbImage,
-  type TmdbCastMember,
-  type TmdbCrewMember,
+  type TmdbMovieCredits,
   type WatchProvider,
+  type WatchProvidersResponse,
 } from "../utils/tmdb";
-import type { MovieRecommendation } from "../utils/recommendMovies";
+import { MEDIA_HEIGHTS, MEDIA_GRID_COLUMNS, DETAILS_GRID_COLUMNS } from "../config/ui";
+import CHIP_SX from "../config/uiStyles";
+
+type Media1000Trailer = { url?: string; name?: string; site?: string; type?: string; key?: string };
 
 type Media1000Item = {
   tmdbId: number;
   imdbId?: string | null;
   title?: string | null;
+  year?: string | null;
   posterUrl?: string | null;
-  trailers?: Array<{ url?: string; name?: string; site?: string; type?: string; key?: string }>;
+  trailers?: Media1000Trailer[];
 };
 
 let media1000ByTmdbIdPromise: Promise<Map<number, Media1000Item>> | null = null;
@@ -55,34 +61,60 @@ async function loadMedia1000ByTmdbId(): Promise<Map<number, Media1000Item>> {
   return media1000ByTmdbIdPromise;
 }
 
-function firstNonEmpty<T>(arr: Array<T | null | undefined>): T | null {
-  for (const v of arr) {
-    if (v !== null && v !== undefined) return v;
-  }
-  return null;
-}
-
 function tryGetYouTubeEmbedUrl(url: string | null | undefined): string {
   const raw = String(url || "").trim();
   if (!raw) return "";
-  const m1 = raw.match(/youtu\.be\/(.+?)(\?|$)/i);
-  const m2 = raw.match(/[?&]v=([^&]+)/i);
-  const m3 = raw.match(/youtube\.com\/embed\/([^?&/]+)/i);
-  const id = String(m1?.[1] || m2?.[1] || m3?.[1] || "").trim();
-  if (!id) return "";
-  if (!/^[a-zA-Z0-9_-]{6,}$/.test(id)) return "";
-  return `https://www.youtube.com/embed/${id}`;
+
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.toLowerCase();
+
+    // youtu.be/<id>
+    if (host === "youtu.be") {
+      const id = u.pathname.split("/").filter(Boolean)[0] || "";
+      if (/^[a-zA-Z0-9_-]{6,}$/.test(id)) return `https://www.youtube.com/embed/${id}`;
+      return "";
+    }
+
+    // youtube.com/watch?v=<id>
+    if (host.endsWith("youtube.com")) {
+      const v = u.searchParams.get("v") || "";
+      if (/^[a-zA-Z0-9_-]{6,}$/.test(v)) return `https://www.youtube.com/embed/${v}`;
+
+      // youtube.com/embed/<id>
+      const parts = u.pathname.split("/").filter(Boolean);
+      const embedIdx = parts.findIndex((p) => p === "embed");
+      if (embedIdx >= 0) {
+        const id = parts[embedIdx + 1] || "";
+        if (/^[a-zA-Z0-9_-]{6,}$/.test(id)) return `https://www.youtube.com/embed/${id}`;
+      }
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
 }
 
 function tryGetVimeoEmbedUrl(url: string | null | undefined): string {
   const raw = String(url || "").trim();
   if (!raw) return "";
-  const m1 = raw.match(/vimeo\.com\/(\d+)(\?|$)/i);
-  const m2 = raw.match(/player\.vimeo\.com\/video\/(\d+)(\?|$)/i);
-  const id = String(m1?.[1] || m2?.[1] || "").trim();
-  if (!id) return "";
-  if (!/^\d{6,}$/.test(id)) return "";
-  return `https://player.vimeo.com/video/${id}`;
+
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.toLowerCase();
+
+    // vimeo.com/<id>
+    if (host.endsWith("vimeo.com")) {
+      const parts = u.pathname.split("/").filter(Boolean);
+      const id = (host.startsWith("player.") ? parts[1] : parts[0]) || "";
+      if (/^\d{6,}$/.test(id)) return `https://player.vimeo.com/video/${id}`;
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
 }
 
 function tryGetEmbedUrl(url: string | null | undefined): string {
@@ -97,33 +129,14 @@ export default function MovieDetail() {
   const region = useMemo(() => getDefaultRegion(), []);
 
   const [query, setQuery] = useState("");
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  const [detail, setDetail] = useState<
-    | null
-    | {
-        id: number;
-        title: string;
-        tagline?: string;
-        overview?: string;
-        poster_path: string | null;
-        release_date?: string;
-        runtime?: number;
-        vote_average?: number;
-        genres?: Array<{ id: number; name: string }>;
-      }
-  >(null);
-
+  const [detail, setDetail] = useState<Awaited<ReturnType<typeof tmdbGetMovieDetails>> | null>(null);
   const [media, setMedia] = useState<Media1000Item | null>(null);
-  const [cast, setCast] = useState<TmdbCastMember[]>([]);
-  const [crew, setCrew] = useState<TmdbCrewMember[]>([]);
 
-  const [watchLink, setWatchLink] = useState<string>("");
-  const [flatrate, setFlatrate] = useState<WatchProvider[]>([]);
-  const [rent, setRent] = useState<WatchProvider[]>([]);
-  const [buy, setBuy] = useState<WatchProvider[]>([]);
+  const [credits, setCredits] = useState<TmdbMovieCredits | null>(null);
+  const [watchProviders, setWatchProviders] = useState<WatchProvidersResponse | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +152,7 @@ export default function MovieDetail() {
 
     (async () => {
       try {
-        const [d, credits, wp, mediaMap] = await Promise.all([
+        const [d, c, wp, mediaMap] = await Promise.all([
           tmdbGetMovieDetails(movieId, { language: "en-US" }),
           tmdbGetMovieCredits(movieId, { language: "en-US" }).catch(() => null),
           tmdbGetWatchProviders(movieId).catch(() => null),
@@ -149,22 +162,9 @@ export default function MovieDetail() {
         if (cancelled) return;
 
         setDetail(d);
-        setCast(Array.isArray((credits as any)?.cast) ? (credits as any).cast : []);
-        setCrew(Array.isArray((credits as any)?.crew) ? (credits as any).crew : []);
-
-        const m = mediaMap.get(movieId) || null;
-        setMedia(m);
-
-        const regionBlock = firstNonEmpty([
-          (wp as any)?.results?.[region],
-          (wp as any)?.results?.US,
-          (wp as any)?.results?.GB,
-        ]);
-
-        setWatchLink(String((regionBlock as any)?.link || ""));
-        setFlatrate(Array.isArray((regionBlock as any)?.flatrate) ? (regionBlock as any).flatrate : []);
-        setRent(Array.isArray((regionBlock as any)?.rent) ? (regionBlock as any).rent : []);
-        setBuy(Array.isArray((regionBlock as any)?.buy) ? (regionBlock as any).buy : []);
+        setCredits(c);
+        setWatchProviders(wp);
+        setMedia(mediaMap.get(movieId) || null);
       } catch (e: any) {
         if (cancelled) return;
         setError(String(e?.message || "Failed to load movie"));
@@ -176,7 +176,7 @@ export default function MovieDetail() {
     return () => {
       cancelled = true;
     };
-  }, [movieId, region]);
+  }, [movieId]);
 
   const year = useMemo(() => {
     const s = String(detail?.release_date || "").trim();
@@ -184,33 +184,43 @@ export default function MovieDetail() {
   }, [detail?.release_date]);
 
   const directors = useMemo(() => {
-    const names = (crew || [])
+    const names = (credits?.crew || [])
       .filter((m) => String(m?.job || "").toLowerCase() === "director")
       .map((m) => String(m?.name || "").trim())
       .filter(Boolean);
     return Array.from(new Set(names));
-  }, [crew]);
+  }, [credits]);
 
   const topCast = useMemo(() => {
-    const sorted = [...(cast || [])].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    const sorted = [...(credits?.cast || [])].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
     return sorted.slice(0, 12);
-  }, [cast]);
+  }, [credits]);
+
+  const regionBlock = useMemo(() => {
+    const results = watchProviders?.results || {};
+    return results[region] || results.US || results.GB || null;
+  }, [watchProviders, region]);
+
+  const watchLink = String(regionBlock?.link || "");
+  const flatrate = Array.isArray(regionBlock?.flatrate) ? regionBlock!.flatrate! : [];
+  const rent = Array.isArray(regionBlock?.rent) ? regionBlock!.rent! : [];
+  const buy = Array.isArray(regionBlock?.buy) ? regionBlock!.buy! : [];
 
   const pageBg = "var(--brand-900)";
   const surface = "var(--surface)";
   const border = "var(--border-1)";
   const muted = "var(--surface-muted)";
 
-  const posterSrc = media?.posterUrl
-    ? media.posterUrl
-    : detail?.poster_path
-      ? tmdbImage(detail.poster_path, "w500")
-      : "";
+  const posterSrc = useMemo(() => {
+    if (media?.posterUrl) return media.posterUrl;
+    if (detail?.poster_path) return tmdbImage(detail.poster_path, "w500");
+    return "";
+  }, [media?.posterUrl, detail?.poster_path]);
 
   const trailerEmbedUrl = useMemo(() => {
     const trailers = Array.isArray(media?.trailers) ? media!.trailers! : [];
     for (const t of trailers) {
-      const embed = tryGetEmbedUrl((t as any)?.url);
+      const embed = tryGetEmbedUrl(t?.url);
       if (embed) return embed;
     }
     return "";
@@ -232,40 +242,36 @@ export default function MovieDetail() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <IconButton
               onClick={() => navigate(-1)}
-              aria-label="back"
+              aria-label="go back"
               size="large"
               sx={{
                 border: `1px solid ${border}`,
                 backgroundColor: surface,
-                borderRadius: 2,
+                borderRadius: 999,
+                color: "var(--text-invert)",
+                width: 46,
+                height: 46,
+                boxShadow: "var(--shadow-1)",
+                "& svg": { fontSize: 30 },
               }}
             >
               <ArrowBackRoundedIcon />
             </IconButton>
-            <Typography sx={{ color: "var(--text-invert)", fontWeight: 800 }}>Back</Typography>
           </Box>
 
           {loading ? (
-            <Typography sx={{ color: muted }}>Loading…</Typography>
+            <Typography sx={{ color: muted }}>Loading</Typography>
           ) : error ? (
             <Typography sx={{ color: "var(--danger-500)" }}>{error}</Typography>
           ) : !detail ? (
             <Typography sx={{ color: muted }}>Movie not found.</Typography>
           ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "360px 1fr 360px" },
-                gap: 3,
-                alignItems: "start",
-              }}
-            >
-              {/* Left: Poster */}
-              <Box sx={{ width: { xs: "100%", md: 360 } }}>
+            <Stack spacing={3}>
+              <Box sx={{ display: "grid", gridTemplateColumns: MEDIA_GRID_COLUMNS as any, gap: 3, alignItems: "stretch" }}>
                 <Box
                   sx={{
                     width: "100%",
-                    height: 520,
+                    height: { xs: MEDIA_HEIGHTS.xs, sm: MEDIA_HEIGHTS.sm, md: MEDIA_HEIGHTS.md },
                     borderRadius: 2,
                     overflow: "hidden",
                     backgroundColor: surface,
@@ -273,161 +279,134 @@ export default function MovieDetail() {
                   }}
                 >
                   {posterSrc ? (
-                    <img
-                      src={posterSrc}
-                      alt={detail.title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    <img src={posterSrc} alt={detail.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <Box sx={{ width: "100%", height: "100%", display: "grid", placeItems: "center" }}>
+                      <Typography sx={{ color: muted, fontWeight: 700 }}>Poster not available</Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                <Box
+                  sx={{
+                    width: "100%",
+                    height: { xs: MEDIA_HEIGHTS.xs, sm: MEDIA_HEIGHTS.sm, md: MEDIA_HEIGHTS.md },
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    backgroundColor: surface,
+                    border: `1px solid ${border}`,
+                  }}
+                >
+                  {trailerEmbedUrl ? (
+                    <iframe
+                      title="Trailer"
+                      src={trailerEmbedUrl}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ width: "100%", height: "100%", border: 0 }}
                     />
-                  ) : null}
+                  ) : (
+                    <Box sx={{ width: "100%", height: "100%", display: "grid", placeItems: "center" }}>
+                      <Typography sx={{ color: muted, fontWeight: 700 }}>Trailer not available</Typography>
+                    </Box>
+                  )}
                 </Box>
               </Box>
 
-              {/* Middle: Main content */}
-              <Box sx={{ minWidth: 0 }}>
-                {trailerEmbedUrl ? (
-                  <Box
-                    sx={{
-                      width: "100%",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      backgroundColor: surface,
-                      border: `1px solid ${border}`,
-                      mb: 2,
-                    }}
-                  >
-                    <Box sx={{ position: "relative", width: "100%", paddingTop: "56.25%" }}>
-                      <iframe
-                        title="Trailer"
-                        src={trailerEmbedUrl}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          border: 0,
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                ) : null}
-
-                <Typography variant="h4" sx={{ color: "var(--text-invert)", fontWeight: 900, letterSpacing: -0.3 }}>
-                  {detail.title}{year ? ` (${year})` : ""}
-                </Typography>
-                {detail.tagline ? (
-                  <Typography sx={{ mt: 1, color: muted, fontStyle: "italic" }}>{detail.tagline}</Typography>
-                ) : null}
-
-                <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap" }}>
-                  {typeof detail.vote_average === "number" ? (
-                    <Chip
-                      label={`${detail.vote_average.toFixed(1)} ★`}
-                      sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
-                    />
+              <Box sx={{ display: "grid", gridTemplateColumns: DETAILS_GRID_COLUMNS as any, gap: 3 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ color: "var(--text-invert)", fontWeight: 900, letterSpacing: -0.3 }}>
+                    {detail.title}{year ? ` (${year})` : ""}
+                  </Typography>
+                  {detail.tagline ? (
+                    <Typography sx={{ mt: 1, color: muted, fontStyle: "italic" }}>{detail.tagline}</Typography>
                   ) : null}
-                  {typeof detail.runtime === "number" ? (
-                    <Chip
-                      label={`${detail.runtime} min`}
-                      sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
-                    />
-                  ) : null}
-                  {directors.length ? (
-                    <Chip
-                      label={`Director: ${directors.slice(0, 2).join(", ")}`}
-                      sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
-                    />
-                  ) : null}
-                </Stack>
 
-                {Array.isArray(detail.genres) && detail.genres.length ? (
-                  <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: "wrap" }}>
-                    {detail.genres.slice(0, 6).map((g) => (
+                  <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap" }}>
+                    {typeof detail.vote_average === "number" ? (
+                      <Chip label={`${detail.vote_average.toFixed(1)} `} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
+                    ) : null}
+                    {typeof detail.runtime === "number" ? (
+                      <Chip label={`${detail.runtime} min`} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
+                    ) : null}
+                    {directors.length ? (
                       <Chip
-                        key={g.id}
-                        label={g.name}
-                        sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
+                        label={`Director: ${directors.slice(0, 2).join(", ")}`}
+                        sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }}
                       />
-                    ))}
+                    ) : null}
                   </Stack>
-                ) : null}
 
-                <Divider sx={{ my: 2, borderColor: border }} />
-
-                <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1 }}>Overview</Typography>
-                <Typography sx={{ color: muted, lineHeight: 1.7 }}>
-                  {String(detail.overview || "").trim() ? detail.overview : "(Plot not available)"}
-                </Typography>
-
-                {topCast.length ? (
-                  <>
-                    <Divider sx={{ my: 2, borderColor: border }} />
-                    <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1 }}>Cast</Typography>
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                      {topCast.map((m) => (
-                        <Chip
-                          key={m.id}
-                          label={m.character ? `${m.name} — ${m.character}` : m.name}
-                          sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
-                        />
+                  {Array.isArray(detail.genres) && detail.genres.length ? (
+                    <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: "wrap" }}>
+                      {detail.genres.slice(0, 10).map((g) => (
+                        <Chip key={g.id} label={g.name} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
                       ))}
                     </Stack>
-                  </>
-                ) : null}
-              </Box>
+                  ) : null}
 
-              {/* Right: Where to watch (fixed 360px, never overlaps) */}
-              <Box
-                sx={{
-                  width: { xs: "100%", md: 360 },
-                  backgroundColor: surface,
-                  border: `1px solid ${border}`,
-                  borderRadius: 2,
-                  p: 2,
-                }}
-              >
-                <Typography sx={{ color: "var(--text-invert)", fontWeight: 900, mb: 1 }}>
-                  Where to watch
-                </Typography>
+                  <Divider sx={{ my: 2, borderColor: border }} />
 
-                {watchLink ? (
-                  <Typography sx={{ color: muted, fontSize: 13, mb: 1 }}>
-                    <a href={watchLink} target="_blank" rel="noreferrer" style={{ color: "var(--accent-500)" }}>
-                      Open provider page
-                    </a>
+                  <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1, fontSize: { xs: 15, md: 18 } }}>Overview</Typography>
+                  <Typography sx={{ color: muted, lineHeight: 1.7 }}>
+                    {String(detail.overview || "").trim() ? detail.overview : "(Plot not available)"}
                   </Typography>
-                ) : null}
 
-                {flatrate.length || rent.length || buy.length ? (
-                  <Stack spacing={2}>
-                    {flatrate.length ? (
-                      <Box>
-                        <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Stream</Typography>
-                        <ProviderRow providers={flatrate} />
-                      </Box>
-                    ) : null}
-                    {rent.length ? (
-                      <Box>
-                        <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Rent</Typography>
-                        <ProviderRow providers={rent} />
-                      </Box>
-                    ) : null}
-                    {buy.length ? (
-                      <Box>
-                        <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Buy</Typography>
-                        <ProviderRow providers={buy} />
-                      </Box>
-                    ) : null}
-                  </Stack>
-                ) : (
-                  <Typography sx={{ color: muted, lineHeight: 1.6 }}>
-                    No watch providers found for region: {region}
-                  </Typography>
-                )}
+                  {topCast.length ? (
+                    <>
+                      <Divider sx={{ my: 2, borderColor: border }} />
+                      <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1, fontSize: { xs: 15, md: 18 } }}>Cast</Typography>
+                      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                        {topCast.map((m) => (
+                          <Chip
+                            key={m.id}
+                            label={m.character ? `${m.name}  ${m.character}` : m.name}
+                            sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }}
+                          />
+                        ))}
+                      </Stack>
+                    </>
+                  ) : null}
+                </Box>
+
+                <Box sx={{ width: { xs: "100%", md: 360 }, backgroundColor: surface, border: `1px solid ${border}`, borderRadius: 2, p: 2 }}>
+                  <Typography sx={{ color: "var(--text-invert)", fontWeight: 900, mb: 1 }}>Where to watch</Typography>
+
+                  {watchLink ? (
+                    <Typography sx={{ color: muted, fontSize: 13, mb: 1 }}>
+                      <a href={watchLink} target="_blank" rel="noreferrer" style={{ color: "var(--accent-500)" }}>
+                        Open provider page
+                      </a>
+                    </Typography>
+                  ) : null}
+
+                  {flatrate.length || rent.length || buy.length ? (
+                    <Stack spacing={2}>
+                      {flatrate.length ? (
+                        <Box>
+                          <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Stream</Typography>
+                          <ProviderRow providers={flatrate} />
+                        </Box>
+                      ) : null}
+                      {rent.length ? (
+                        <Box>
+                          <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Rent</Typography>
+                          <ProviderRow providers={rent} />
+                        </Box>
+                      ) : null}
+                      {buy.length ? (
+                        <Box>
+                          <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Buy</Typography>
+                          <ProviderRow providers={buy} />
+                        </Box>
+                      ) : null}
+                    </Stack>
+                  ) : (
+                    <Typography sx={{ color: muted, lineHeight: 1.6 }}>No watch providers found for region: {region}</Typography>
+                  )}
+                </Box>
               </Box>
-            </Box>
+            </Stack>
           )}
         </Container>
       </div>
@@ -448,16 +427,8 @@ function ProviderRow({ providers }: { providers: WatchProvider[] }) {
           <Chip
             key={p.provider_id}
             label={p.provider_name}
-            icon={
-              logo ? (
-                <img
-                  src={logo}
-                  alt={p.provider_name}
-                  style={{ width: 18, height: 18, borderRadius: 4 }}
-                />
-              ) : undefined
-            }
-            sx={{ backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
+            icon={logo ? <img src={logo} alt={p.provider_name} style={{ width: 18, height: 18, borderRadius: 4 }} /> : undefined}
+            sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)", border: `1px solid ${border}` }}
           />
         );
       })}
@@ -465,24 +436,8 @@ function ProviderRow({ providers }: { providers: WatchProvider[] }) {
   );
 }
 
-function Container({
-  children,
-  style = {},
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
+function Container({ children, style = {} }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: "0 20px",
-        ...style,
-      }}
-    >
-      {children}
-    </div>
+    <div style={{ width: "100%", maxWidth: 1360, margin: "0 auto", padding: "0 20px", ...style }}>{children}</div>
   );
 }
