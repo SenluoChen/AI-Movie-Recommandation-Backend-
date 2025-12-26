@@ -172,7 +172,7 @@ export default function SearchResultsPage() {
 
       <div style={{ backgroundColor: pageBg }}>
         <Container style={{ paddingTop: 18, paddingBottom: 64 }}>
-          {(query.trim() || subtitle) ? (
+          {results.length > 0 ? (
             <SectionHeader
               title={query.trim() ? `Search results: ${query.trim()}` : ""}
               subtitle={subtitle}
