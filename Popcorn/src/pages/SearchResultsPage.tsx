@@ -7,6 +7,12 @@ import Footer from "../components/footer";
 import { tmdbDiscoverMovies, tmdbGetMovieDetails, tmdbImage, type TmdbMovie } from "../utils/tmdb";
 import type { MovieRecommendation } from "../utils/recommendMovies";
 
+type LocalTop10Item = {
+  imdbId: string;
+  title?: string;
+  posterUrl?: string | null;
+};
+
 type NavState = {
   results?: MovieRecommendation[];
   q?: string;
@@ -17,16 +23,48 @@ let topRated10Promise: Promise<TmdbMovie[]> | null = null;
 async function loadTopRated10(): Promise<TmdbMovie[]> {
   if (topRated10Promise) return topRated10Promise;
   topRated10Promise = (async () => {
-    const res = await tmdbDiscoverMovies({
-      language: "en-US",
-      sort_by: "vote_average.desc",
-      vote_count_gte: 500,
-      include_adult: false,
-      page: 1,
-    });
-    const list = Array.isArray(res?.results) ? res.results : [];
-    // note: Keep it deterministic and small; UI wants exactly 10 cards.
-    return list.slice(0, 10);
+    try {
+      const res = await tmdbDiscoverMovies({
+        language: "en-US",
+        sort_by: "vote_average.desc",
+        vote_count_gte: 500,
+        include_adult: false,
+        page: 1,
+      });
+      const list = Array.isArray(res?.results) ? res.results : [];
+      // note: Keep it deterministic and small; UI wants exactly 10 cards.
+      return list.slice(0, 10);
+    } catch {
+      // note: Local fallback (works without TMDb key)
+      try {
+        const resp = await fetch("/media_top10.json", { cache: "no-cache" });
+        if (!resp.ok) return [];
+        const data = await resp.json().catch(() => ({}));
+        const items: LocalTop10Item[] = Array.isArray(data?.items) ? data.items : [];
+        return items
+          .filter((x) => x && String(x.imdbId || "").trim())
+          .slice(0, 10)
+          .map((x, i) => {
+            const title = String(x?.title || "").trim() || `Top pick ${i + 1}`;
+            const posterUrl = (x?.posterUrl ?? null) as string | null;
+            return {
+              id: -(i + 1),
+              title,
+              poster_path: null,
+              backdrop_path: null,
+              release_date: "",
+              overview: "",
+              vote_average: undefined,
+              vote_count: undefined,
+              genre_ids: [],
+              posterUrl,
+              imdbId: String(x.imdbId),
+            } as any;
+          });
+      } catch {
+        return [];
+      }
+    }
   })();
   return topRated10Promise;
 }
@@ -46,11 +84,21 @@ export default function SearchResultsPage() {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<MovieRecommendation[]>(initialResults);
 
-  const [topRated, setTopRated] = useState<TmdbMovie[]>([]);
+  const [topRated, setTopRated] = useState<Array<TmdbMovie & { tagline?: string; posterUrl?: string | null; imdbId?: string }>>([]);
   const [topRatedLoading, setTopRatedLoading] = useState(false);
   const [topRatedError, setTopRatedError] = useState<string>("");
 
-  const requestedOverviewIdsRef = useRef<Set<number>>(new Set());
+  const requestedDetailsIdsRef = useRef<Set<number>>(new Set());
+
+  const shortIntro = (tagline: string | undefined, overview: string | undefined) => {
+    const t = String(tagline || "").trim();
+    if (t) return t;
+    const o = String(overview || "").trim();
+    if (!o) return "";
+    // Prefer first sentence as a "short intro".
+    const firstSentence = o.split(/(?<=[.!?])\s+/)[0] || o;
+    return firstSentence.trim();
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -62,7 +110,7 @@ export default function SearchResultsPage() {
       try {
         const list = await loadTopRated10();
         if (cancelled) return;
-        setTopRated(list);
+        setTopRated(list as any);
       } catch (e: any) {
         if (cancelled) return;
         setTopRated([]);
@@ -80,15 +128,25 @@ export default function SearchResultsPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function enrichOverviews() {
-      const need = results
+    async function enrichCards() {
+      const needResults = results
         .filter((m) => Number.isFinite(m.id) && m.id > 0)
-        .filter((m) => !String(m.overview || "").trim())
-        .filter((m) => !requestedOverviewIdsRef.current.has(m.id));
+        .filter((m) => {
+          const needsOverview = !String(m.overview || "").trim();
+          const needsTagline = !String(m.tagline || "").trim();
+          return needsOverview || needsTagline;
+        })
+        .filter((m) => !requestedDetailsIdsRef.current.has(m.id));
 
+      const needTopRated = topRated
+        .filter((m) => Number.isFinite(m.id) && m.id > 0)
+        .filter((m) => !String(m.tagline || "").trim())
+        .filter((m) => !requestedDetailsIdsRef.current.has(m.id));
+
+      const need = [...needResults, ...needTopRated];
       if (!need.length) return;
 
-      need.forEach((m) => requestedOverviewIdsRef.current.add(m.id));
+      need.forEach((m) => requestedDetailsIdsRef.current.add(m.id));
 
       const runWithConcurrency = async <T, R>(arr: T[], limit: number, worker: (v: T) => Promise<R>) => {
         const out: R[] = new Array(arr.length);
@@ -103,41 +161,55 @@ export default function SearchResultsPage() {
         return out;
       };
 
-      const fetched = await runWithConcurrency(
-        need,
-        4,
-        async (m) => {
-          try {
-            const d = await tmdbGetMovieDetails(m.id, { language: "en-US" });
-            return { id: m.id, overview: String(d?.overview || "").trim() };
-          } catch {
-            return { id: m.id, overview: "" };
-          }
+      const fetched = await runWithConcurrency(need, 4, async (m) => {
+        try {
+          const d = await tmdbGetMovieDetails(m.id, { language: "en-US" });
+          return {
+            id: m.id,
+            overview: String(d?.overview || "").trim(),
+            tagline: String(d?.tagline || "").trim(),
+            original_language: String(d?.original_language || "").trim(),
+          };
+        } catch {
+          return { id: m.id, overview: "", tagline: "", original_language: "" };
         }
-      );
+      });
 
       if (cancelled) return;
 
-      const byId = new Map<number, string>();
+      const byId = new Map<number, { overview: string; tagline: string; original_language: string }>();
       fetched.forEach((x) => {
-        if (x && Number.isFinite(x.id)) byId.set(x.id, x.overview || "");
+        if (x && Number.isFinite(x.id)) byId.set(x.id, { overview: x.overview || "", tagline: x.tagline || "", original_language: x.original_language || "" });
       });
 
       setResults((prev) =>
         prev.map((m) => {
-          const nextOverview = byId.get(m.id);
-          if (nextOverview === undefined) return m;
-          if (String(m.overview || "").trim()) return m;
-          return { ...m, overview: nextOverview };
+          const next = byId.get(m.id);
+          if (!next) return m;
+          return {
+            ...m,
+            overview: String(m.overview || "").trim() ? m.overview : next.overview,
+            tagline: m.tagline || next.tagline,
+            original_language: m.original_language || next.original_language,
+          };
+        })
+      );
+
+      setTopRated((prev) =>
+        prev.map((m) => {
+          const next = byId.get(m.id);
+          if (!next) return m;
+          if (String(m.tagline || "").trim()) return m;
+          return { ...m, tagline: next.tagline || m.tagline };
         })
       );
     }
 
-    enrichOverviews();
+    enrichCards();
     return () => {
       cancelled = true;
     };
-  }, [results]);
+  }, [results, topRated]);
 
   // note: Keep input in sync with URL (when user navigates with browser back/forward)
   useEffect(() => {
@@ -201,19 +273,28 @@ export default function SearchResultsPage() {
                 ) : (
                   <div className="pc-movie-grid">
                     {topRated.map((m) => {
-                      const posterSrc = m.poster_path ? tmdbImage(m.poster_path, "w342") : "";
+                      const posterSrc = (m as any).posterUrl
+                        ? String((m as any).posterUrl)
+                        : m.poster_path
+                          ? tmdbImage(m.poster_path, "w342")
+                          : "";
                       const year = m.release_date ? m.release_date.slice(0, 4) : "";
                       const rating = typeof m.vote_average === "number" && Number.isFinite(m.vote_average)
                         ? m.vote_average.toFixed(1)
                         : "—";
                       const overviewText = String(m.overview || "").trim();
+                      const intro = shortIntro(m.tagline, overviewText);
+
+                      const hasId = Number.isFinite(m.id) && m.id > 0;
 
                       return (
                         <div
-                          key={m.id}
-                          onClick={() => navigate(`/movie/${m.id}`)}
+                          key={String((m as any).imdbId || m.id)}
+                          onClick={() => {
+                            if (hasId) navigate(`/movie/${m.id}`);
+                          }}
                           className="pc-movie-card"
-                          style={{ cursor: "pointer" }}
+                          style={{ cursor: hasId ? "pointer" : "default" }}
                           title={m.title}
                         >
                           <div className="pc-movie-poster" style={{ background: "var(--surface-muted)" }}>
@@ -228,6 +309,13 @@ export default function SearchResultsPage() {
                           <div className="pc-movie-meta">
                             <div className="pc-movie-title" style={{ color: ink }}>
                               {m.title}{year ? ` (${year})` : ""}
+                            </div>
+                            <div className="pc-movie-submeta">
+                              {year ? <span className="pc-movie-meta-part">{year}</span> : null}
+                              {year && m.original_language ? <span className="pc-movie-meta-sep">|</span> : null}
+                              {m.original_language ? <span className="pc-movie-meta-part">{String(m.original_language).toUpperCase()}</span> : null}
+                              {(year || m.original_language) && intro ? <span className="pc-movie-meta-sep">|</span> : null}
+                              {intro ? <span className="pc-movie-tagline">{intro}</span> : null}
                             </div>
                             <div className="pc-movie-rating" style={{ color: ink }}>
                               <div className="pc-movie-rating-num">{rating}</div>
@@ -259,6 +347,7 @@ export default function SearchResultsPage() {
                   : "—";
 
                 const overviewText = String(m.overview || "").trim();
+                const intro = shortIntro(m.tagline, overviewText);
 
                 return (
                   <div
@@ -285,6 +374,13 @@ export default function SearchResultsPage() {
                         style={{ color: ink }}
                       >
                         {m.title}{year ? ` (${year})` : ""}
+                      </div>
+                      <div className="pc-movie-submeta">
+                        {year ? <span className="pc-movie-meta-part">{year}</span> : null}
+                        {year && m.original_language ? <span className="pc-movie-meta-sep">|</span> : null}
+                        {m.original_language ? <span className="pc-movie-meta-part">{String(m.original_language).toUpperCase()}</span> : null}
+                        {(year || m.original_language) && intro ? <span className="pc-movie-meta-sep">|</span> : null}
+                        {intro ? <span className="pc-movie-tagline">{intro}</span> : null}
                       </div>
                       <div className="pc-movie-rating" style={{ color: ink }}>
                         <div className="pc-movie-rating-num">{rating}</div>

@@ -39,6 +39,17 @@
 			"type": "shell",
 			"command": "powershell -NoProfile -Command \"$port=3000; Write-Host '--- Get-NetTCPConnection'; Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess | Format-Table -AutoSize; Write-Host '--- netstat'; netstat -ano | findstr /R /C:':3000 .*LISTENING'; Write-Host '--- process'; $p=(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess); if($p){ Get-Process -Id $p | Select-Object Id,ProcessName,Path | Format-List } else { Write-Host 'No listener found' }\"",
 			"isBackground": false
+		},
+		{
+			"label": "Build frontend (npm run build)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Set-Location -LiteralPath 'c:\\Users\\Louis\\Visual Studio\\Popcorn\\Popcorn'; npm run build"
+			],
+			"isBackground": false
 		}
 	]
 }

@@ -257,6 +257,12 @@ function Navbar({ query, setQuery, onRecommend }: NavbarProps) {
 
   const handleSearch = async () => {
     const q = String(localQuery || '').trim();
+    // Update parent query state when a search is triggered
+    try {
+      setQuery(q);
+    } catch {
+      // ignore
+    }
     if (!q) return;
     setLoading(true);
     setError("");
@@ -398,17 +404,30 @@ function Navbar({ query, setQuery, onRecommend }: NavbarProps) {
           }}
         >
           {/* Left: Logo */}
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <Link to="/" style={{ display: "block" }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Link to="/" style={{ display: "block", position: 'relative' }}>
               <img
                 src="/0ce80c37-a090-461c-872f-0e45a2899756.png"
                 alt="Popcorn"
                 style={{
                   display: "block",
-                  height: "56px",
+                  height: "80px",
                   width: "auto",
                   objectFit: "contain",
                   cursor: "pointer",
+                }}
+              />
+              {/* Overlay square to hide small unwanted text under the logo */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  bottom: 6,
+                  left: 8,
+                  width: 56,
+                  height: 18,
+                  backgroundColor: 'var(--brand-900)',
+                  pointerEvents: 'none',
                 }}
               />
             </Link>
@@ -423,7 +442,6 @@ function Navbar({ query, setQuery, onRecommend }: NavbarProps) {
                   value={localQuery}
                   onChange={(e) => {
                     setLocalQuery(e.target.value);
-                    setQuery(e.target.value);
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   style={{

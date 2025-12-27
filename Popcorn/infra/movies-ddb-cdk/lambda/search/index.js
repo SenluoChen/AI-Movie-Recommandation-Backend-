@@ -14,6 +14,15 @@ let cachedMovies = null;
 
 const TRANSLATION_CACHE = new Map();
 const EMBEDDING_CACHE = new Map();
+const FAISS_CACHE = new Map();
+
+// Small in-memory cache for movie items to avoid repeated DynamoDB BatchGet calls
+const MOVIE_ITEM_CACHE = new Map();
+
+// In-flight dedupe (avoid duplicate concurrent calls for same key)
+const INFLIGHT_TRANSLATION = new Map();
+const INFLIGHT_EMBEDDINGS = new Map();
+const INFLIGHT_FAISS = new Map();
 
 function nowMs() {
   return Date.now();
@@ -47,6 +56,45 @@ function setInCache(map, key, value, maxEntries) {
     }
     if (oldestKey) map.delete(oldestKey);
   }
+}
+
+async function getMoviesByImdbIdsWithCache({ tableName, region, imdbIds }) {
+  const ttlMs = Number(process.env.MOVIE_CACHE_TTL_MS || 5 * 60 * 1000);
+  const maxEntries = Number(process.env.MOVIE_CACHE_MAX || 2000);
+
+  const ids = (Array.isArray(imdbIds) ? imdbIds : []).map((id) => String(id || '').trim()).filter(Boolean);
+  if (!ids.length) return [];
+
+  const hits = {};
+  const missing = [];
+  for (const id of ids) {
+    const cached = getFromCache(MOVIE_ITEM_CACHE, id, ttlMs);
+    if (cached) hits[id] = cached;
+    else missing.push(id);
+  }
+
+  let fetched = [];
+  if (missing.length) {
+    fetched = await batchGetMoviesByImdbIds({ tableName, region, imdbIds: missing });
+    for (const m of fetched || []) {
+      const key = String(m?.imdbId || '').trim();
+      if (key) setInCache(MOVIE_ITEM_CACHE, key, m, maxEntries);
+    }
+  }
+
+  // Return items in order of imdbIds with cached + fetched merged
+  const fetchedMap = new Map();
+  for (const f of fetched || []) {
+    const k = String(f?.imdbId || '').trim();
+    if (k) fetchedMap.set(k, f);
+  }
+
+  const out = [];
+  for (const id of ids) {
+    if (hits[id]) out.push(hits[id]);
+    else if (fetchedMap.has(id)) out.push(fetchedMap.get(id));
+  }
+  return out;
 }
 
 function isProbablyOpenAiApiKey(value) {
@@ -560,6 +608,11 @@ async function translateQueryToEnglish({ apiKey, query, model }) {
     return v;
   }
 
+  const inflight = INFLIGHT_TRANSLATION.get(original);
+  if (inflight) {
+    return inflight;
+  }
+
   const prompt = [
     'Detect the language of the user\'s movie search query.',
     'If it is not English, translate it to natural English.',
@@ -569,30 +622,39 @@ async function translateQueryToEnglish({ apiKey, query, model }) {
     `QUERY: ${original}`,
   ].join('\n');
 
-  const raw = await openaiChatCompletion({
-    apiKey,
-    model,
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0,
-    max_tokens: 180,
-  });
+  const p = (async () => {
+    const raw = await openaiChatCompletion({
+      apiKey,
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0,
+      max_tokens: 180,
+    });
 
+    try {
+      const parsed = JSON.parse(raw);
+      const english = normalizeQueryText(parsed?.english);
+      const v = {
+        original,
+        language: String(parsed?.language || '').trim(),
+        english: english || original,
+      };
+      setInCache(TRANSLATION_CACHE, original, v, Number(process.env.TRANSLATION_CACHE_MAX || 500));
+      return v;
+    } catch {
+      // Fallback: if model returned plain text, treat it as the translation.
+      const english = normalizeQueryText(raw);
+      const v = { original, english: english || original };
+      setInCache(TRANSLATION_CACHE, original, v, Number(process.env.TRANSLATION_CACHE_MAX || 500));
+      return v;
+    }
+  })();
+
+  INFLIGHT_TRANSLATION.set(original, p);
   try {
-    const parsed = JSON.parse(raw);
-    const english = normalizeQueryText(parsed?.english);
-    const v = {
-      original,
-      language: String(parsed?.language || '').trim(),
-      english: english || original,
-    };
-    setInCache(TRANSLATION_CACHE, original, v, Number(process.env.TRANSLATION_CACHE_MAX || 500));
-    return v;
-  } catch {
-    // Fallback: if model returned plain text, treat it as the translation.
-    const english = normalizeQueryText(raw);
-    const v = { original, english: english || original };
-    setInCache(TRANSLATION_CACHE, original, v, Number(process.env.TRANSLATION_CACHE_MAX || 500));
-    return v;
+    return await p;
+  } finally {
+    INFLIGHT_TRANSLATION.delete(original);
   }
 }
 
@@ -602,47 +664,88 @@ async function openaiEmbeddings({ apiKey, model, input, maxAttempts = 6 }) {
   const cached = getFromCache(EMBEDDING_CACHE, cacheKey, cacheTtlMs);
   if (cached) return cached;
 
-  const url = 'https://api.openai.com/v1/embeddings';
-
-  let lastErr;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ model, input }),
-      });
-
-      if (!resp.ok) {
-        // Do NOT include response body in the error; OpenAI errors can echo sensitive info.
-        const err = new Error(`OpenAI embeddings failed: status=${resp.status}`);
-        err.status = resp.status;
-        throw err;
-      }
-
-      const data = await resp.json();
-      const embedding = data?.data?.[0]?.embedding;
-      if (!Array.isArray(embedding) || embedding.length === 0) {
-        throw new Error('OpenAI embeddings returned empty embedding');
-      }
-
-      setInCache(EMBEDDING_CACHE, cacheKey, embedding, Number(process.env.EMBEDDING_CACHE_MAX || 500));
-      return embedding;
-    } catch (e) {
-      lastErr = e;
-      const status = e?.status;
-      if (attempt === maxAttempts || (typeof status === 'number' && !isRetryableOpenAI(status))) {
-        throw e;
-      }
-      const backoff = Math.min(12000, 800 * (2 ** (attempt - 1))) + Math.floor(Math.random() * 250);
-      await sleep(backoff);
-    }
+  const inflight = INFLIGHT_EMBEDDINGS.get(cacheKey);
+  if (inflight) {
+    return inflight;
   }
 
-  throw lastErr;
+  const url = 'https://api.openai.com/v1/embeddings';
+
+  const p = (async () => {
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ model, input }),
+        });
+
+        if (!resp.ok) {
+          // Do NOT include response body in the error; OpenAI errors can echo sensitive info.
+          const err = new Error(`OpenAI embeddings failed: status=${resp.status}`);
+          err.status = resp.status;
+          throw err;
+        }
+
+        const data = await resp.json();
+        const embedding = data?.data?.[0]?.embedding;
+        if (!Array.isArray(embedding) || embedding.length === 0) {
+          throw new Error('OpenAI embeddings returned empty embedding');
+        }
+
+        setInCache(EMBEDDING_CACHE, cacheKey, embedding, Number(process.env.EMBEDDING_CACHE_MAX || 500));
+        return embedding;
+      } catch (e) {
+        lastErr = e;
+        const status = e?.status;
+        if (attempt === maxAttempts || (typeof status === 'number' && !isRetryableOpenAI(status))) {
+          throw e;
+        }
+        const backoff = Math.min(12000, 800 * (2 ** (attempt - 1))) + Math.floor(Math.random() * 250);
+        await sleep(backoff);
+      }
+    }
+
+    throw lastErr;
+  })();
+
+  INFLIGHT_EMBEDDINGS.set(cacheKey, p);
+  try {
+    return await p;
+  } finally {
+    INFLIGHT_EMBEDDINGS.delete(cacheKey);
+  }
+}
+
+async function cachedFaissSearch({ baseUrl, vector, topK, cacheKey }) {
+  const k = String(cacheKey || '').trim();
+  if (!k) {
+    return faissSearch({ baseUrl, vector, topK });
+  }
+
+  const cacheTtlMs = Number(process.env.FAISS_CACHE_TTL_MS || 2 * 60 * 1000);
+  const cached = getFromCache(FAISS_CACHE, k, cacheTtlMs);
+  if (cached) return cached;
+
+  const inflight = INFLIGHT_FAISS.get(k);
+  if (inflight) return inflight;
+
+  const p = (async () => {
+    const data = await faissSearch({ baseUrl, vector, topK });
+    setInCache(FAISS_CACHE, k, data, Number(process.env.FAISS_CACHE_MAX || 300));
+    return data;
+  })();
+
+  INFLIGHT_FAISS.set(k, p);
+  try {
+    return await p;
+  } finally {
+    INFLIGHT_FAISS.delete(k);
+  }
 }
 
 async function resolveOpenAiApiKey() {
@@ -853,13 +956,16 @@ exports.handler = async (event) => {
   }
 
   try {
+    // Start translation in parallel (non-blocking) to avoid adding its latency
+    // to the critical path for embeddings + FAISS lookup. We still keep caching
+    // and in-flight dedupe inside translateQueryToEnglish.
     const tTranslateStart = nowMs();
-    const translated = await translateQueryToEnglish({ apiKey, query, model: translateModel });
-    const tTranslateMs = nowMs() - tTranslateStart;
+    const translatePromise = translateQueryToEnglish({ apiKey, query, model: translateModel }).catch((e) => ({ english: undefined }));
 
-    const effective = translated?.english || query;
-    const hints = buildQueryHints(effective);
+    // Build hints from the original query (language detection & expansions are based on original text).
+    const hints = buildQueryHints(query);
 
+    // Use embeddings on the (possibly expanded) original query immediately.
     const tEmbedStart = nowMs();
     const queryVector = await openaiEmbeddings({ apiKey, model, input: hints.expandedQuery });
     const tEmbedMs = nowMs() - tEmbedStart;
@@ -875,15 +981,25 @@ exports.handler = async (event) => {
       usedFaiss = true;
       try {
         // Vector service caps at topK<=200; if we exceed it, it will 4xx and we'd fall back to scan.
-        const faissTopK = Math.min(200, Math.max(50, topK * 20));
-        const faissData = await faissSearch({ baseUrl: faissServiceUrl, vector: queryVector, topK: faissTopK });
+        // Candidate multiplier controls how many ids we ask FAISS for.
+        // Keep a reasonable floor to avoid hurting precision.
+        const faissMultiplier = Number(process.env.FAISS_CANDIDATE_MULTIPLIER || 8);
+        const faissTopK = Math.min(200, Math.max(50, Math.floor(topK * faissMultiplier)));
+        const faissCacheKey = `${String(faissServiceUrl).trim()}::${String(model || '').trim()}::${normalizeQueryText(hints.expandedQuery)}::${faissTopK}`;
+        const faissData = await cachedFaissSearch({
+          baseUrl: faissServiceUrl,
+          vector: queryVector,
+          topK: faissTopK,
+          cacheKey: faissCacheKey,
+        });
         tFaissMs = nowMs() - tFaissStart;
 
         const hits = Array.isArray(faissData?.results) ? faissData.results : [];
         const imdbIds = hits.map((r) => r?.imdbId).filter(Boolean);
 
         const tFetchStart = nowMs();
-        candidateMovies = await batchGetMoviesByImdbIds({ tableName, region, imdbIds });
+        // Use in-memory cache to avoid repeated BatchGet calls for popular ids.
+        candidateMovies = await getMoviesByImdbIdsWithCache({ tableName, region, imdbIds });
         tFetchMs = nowMs() - tFetchStart;
       } catch (e) {
         // If FAISS is down/unhealthy, fall back to DynamoDB scan so the endpoint still works.
@@ -979,6 +1095,15 @@ exports.handler = async (event) => {
     const top = scored.slice(0, topK);
     const tScoreMs = nowMs() - tScoreStart;
     const tTotalMs = nowMs() - t0;
+    // Try to obtain translated text if it completed quickly; don't block on it.
+    let translated = undefined;
+    try {
+      const maxWait = Number(process.env.TRANSLATE_MAX_AWAIT_MS || 250);
+      translated = await Promise.race([translatePromise, new Promise((res) => setTimeout(() => res(undefined), maxWait))]);
+    } catch (e) {
+      translated = undefined;
+    }
+
     return json(200, {
       query,
       queryEnglish: translated?.english && translated.english !== query ? translated.english : undefined,
@@ -994,7 +1119,8 @@ exports.handler = async (event) => {
       hintExcludeGenres: Array.isArray(hints?.excludedGenres) && hints.excludedGenres.length ? hints.excludedGenres : undefined,
       timingsMs: {
         total: tTotalMs,
-        translate: tTranslateMs,
+        // translate timing may be undefined if we didn't wait for it
+        translate: typeof tTranslateMs !== 'undefined' ? tTranslateMs : undefined,
         embed: tEmbedMs,
         faiss: usedFaiss ? tFaissMs : undefined,
         fetchMovies: tFetchMs,

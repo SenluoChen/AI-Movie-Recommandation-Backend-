@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import Navbar from "../components/Navbar";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Footer from "../components/footer";
 import { getDefaultRegion } from "../utils/recommendMovies";
 import type { MovieRecommendation } from "../utils/recommendMovies";
@@ -24,41 +27,39 @@ import {
   type WatchProvidersResponse,
 } from "../utils/tmdb";
 import { MEDIA_HEIGHTS, MEDIA_GRID_COLUMNS, DETAILS_GRID_COLUMNS } from "../config/ui";
-import CHIP_SX from "../config/uiStyles";
 
 type Media1000Trailer = { url?: string; name?: string; site?: string; type?: string; key?: string };
 
 type Media1000Item = {
-  tmdbId: number;
-  imdbId?: string | null;
-  title?: string | null;
-  year?: string | null;
-  posterUrl?: string | null;
+  tmdbId?: number;
+  imdbId?: string;
+  title?: string;
+  year?: string;
+  posterUrl?: string;
   trailers?: Media1000Trailer[];
 };
 
-let media1000ByTmdbIdPromise: Promise<Map<number, Media1000Item>> | null = null;
+let MEDIA1000_BY_TMDB_ID_PROMISE: Promise<Map<number, Media1000Item>> | null = null;
 
 async function loadMedia1000ByTmdbId(): Promise<Map<number, Media1000Item>> {
-  if (media1000ByTmdbIdPromise) return media1000ByTmdbIdPromise;
-  media1000ByTmdbIdPromise = (async () => {
-    try {
-      const resp = await fetch("/media_1000.json", { cache: "no-cache" });
-      if (!resp.ok) return new Map();
-      const data = await resp.json().catch(() => ({}));
-      const raw = data?.byTmdbId && typeof data.byTmdbId === "object" ? data.byTmdbId : {};
-      const map = new Map<number, Media1000Item>();
-      for (const [k, v] of Object.entries(raw)) {
-        const tmdbId = Number(k);
-        if (!Number.isFinite(tmdbId) || tmdbId <= 0) continue;
-        map.set(tmdbId, v as Media1000Item);
-      }
-      return map;
-    } catch {
-      return new Map();
+  if (MEDIA1000_BY_TMDB_ID_PROMISE) return MEDIA1000_BY_TMDB_ID_PROMISE;
+
+  MEDIA1000_BY_TMDB_ID_PROMISE = (async () => {
+    const res = await fetch("/media_1000.json");
+    if (!res.ok) throw new Error(`Failed to load media_1000.json (${res.status})`);
+    const json = (await res.json()) as any;
+    const byTmdbId = (json && typeof json === "object" ? json.byTmdbId : null) || {};
+
+    const map = new Map<number, Media1000Item>();
+    for (const [k, v] of Object.entries(byTmdbId)) {
+      const id = Number(k);
+      if (!Number.isFinite(id) || id <= 0) continue;
+      map.set(id, v as Media1000Item);
     }
+    return map;
   })();
-  return media1000ByTmdbIdPromise;
+
+  return MEDIA1000_BY_TMDB_ID_PROMISE;
 }
 
 function tryGetYouTubeEmbedUrl(url: string | null | undefined): string {
@@ -71,9 +72,8 @@ function tryGetYouTubeEmbedUrl(url: string | null | undefined): string {
 
     // youtu.be/<id>
     if (host === "youtu.be") {
-      const id = u.pathname.split("/").filter(Boolean)[0] || "";
+      const id = u.pathname.replace(/^\/+/, "").split("/")[0] || "";
       if (/^[a-zA-Z0-9_-]{6,}$/.test(id)) return `https://www.youtube.com/embed/${id}`;
-      return "";
     }
 
     // youtube.com/watch?v=<id>
@@ -121,6 +121,8 @@ function tryGetEmbedUrl(url: string | null | undefined): string {
   return tryGetYouTubeEmbedUrl(url) || tryGetVimeoEmbedUrl(url) || "";
 }
 
+type DetailTab = "overview" | "cast" | "details";
+
 export default function MovieDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -137,6 +139,9 @@ export default function MovieDetail() {
 
   const [credits, setCredits] = useState<TmdbMovieCredits | null>(null);
   const [watchProviders, setWatchProviders] = useState<WatchProvidersResponse | null>(null);
+
+  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
+  const tabContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,13 +188,23 @@ export default function MovieDetail() {
     return s ? s.slice(0, 4) : "";
   }, [detail?.release_date]);
 
-  const directors = useMemo(() => {
-    const names = (credits?.crew || [])
-      .filter((m) => String(m?.job || "").toLowerCase() === "director")
-      .map((m) => String(m?.name || "").trim())
-      .filter(Boolean);
-    return Array.from(new Set(names));
-  }, [credits]);
+  const detailsRows = useMemo(() => {
+    const rows: Array<{ label: string; value: string }> = [];
+    const release = String(detail?.release_date || "").trim();
+    if (release) rows.push({ label: "Release", value: release });
+
+    const lang = String(detail?.original_language || "").trim();
+    if (lang) rows.push({ label: "Language", value: lang.toUpperCase() });
+
+    const votes = typeof detail?.vote_count === "number" && Number.isFinite(detail.vote_count)
+      ? detail.vote_count
+      : null;
+    if (votes != null) rows.push({ label: "Votes", value: votes.toLocaleString() });
+
+    return rows;
+  }, [detail?.release_date, detail?.original_language, detail?.vote_count]);
+
+  
 
   const topCast = useMemo(() => {
     const sorted = [...(credits?.cast || [])].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
@@ -209,6 +224,67 @@ export default function MovieDetail() {
   const surface = "var(--surface)";
   const border = "var(--border-1)";
   const muted = "var(--surface-muted)";
+  const blockSx = {
+    backgroundColor: "transparent",
+    border: "none",
+    borderRadius: 0,
+    p: 0,
+  } as any;
+
+  // Genre capsule style helper: no hard-coded colors; use existing CSS variables.
+  const genreCapsuleSx = (name: string) => {
+    const key = String(name || "").trim().toLowerCase();
+    const angles: Record<string, number> = {
+      horror: 135,
+      thriller: 225,
+      action: 45,
+      adventure: 315,
+    };
+    const angle = angles[key] ?? 135;
+
+    return {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      px: 1.75,
+      py: 0.7,
+      pl: 4,
+      borderRadius: 999,
+      minHeight: 32,
+      border: `1px solid ${border}`,
+      backgroundColor: surface,
+      backgroundImage: `linear-gradient(${angle}deg, var(--surface) 0%, var(--surface) 55%, var(--surface-muted) 100%)`,
+      boxShadow: "var(--shadow-1)",
+      color: "var(--text-invert)",
+      fontWeight: 950,
+      fontSize: 12.5,
+      letterSpacing: 0.5,
+      lineHeight: 1,
+      userSelect: "none",
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        left: 14,
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 8,
+        height: 8,
+        borderRadius: 999,
+        backgroundColor: "var(--accent-500)",
+        boxShadow: "0 0 0 2px var(--surface)",
+      },
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        inset: 1,
+        borderRadius: 999,
+        border: "1px solid var(--border-1)",
+        opacity: 0.55,
+        pointerEvents: "none",
+      },
+    } as any;
+  };
 
   const posterSrc = useMemo(() => {
     if (media?.posterUrl) return media.posterUrl;
@@ -225,6 +301,39 @@ export default function MovieDetail() {
     return "";
   }, [media]);
 
+  const backdropSrc = useMemo(() => {
+    if (detail?.backdrop_path) return tmdbImage(detail.backdrop_path, "original");
+    return "";
+  }, [detail?.backdrop_path]);
+
+  // Larger media sizes for detail view (override of central UI sizes)
+  const ENLARGE_SCALE = 1.35;
+  const largeHeights = {
+    xs: Math.round(MEDIA_HEIGHTS.xs * ENLARGE_SCALE),
+    sm: Math.round(MEDIA_HEIGHTS.sm * ENLARGE_SCALE),
+    md: Math.round(MEDIA_HEIGHTS.md * ENLARGE_SCALE),
+  };
+  const mediaGridColumns = { xs: MEDIA_GRID_COLUMNS.xs, md: "1fr 5fr" };
+  const detailsGridColumnsLocal = { xs: DETAILS_GRID_COLUMNS.xs, md: "1fr 420px" };
+
+  const bodyTextScaleSx = {
+    "& .MuiTypography-body1": { fontSize: { xs: "1.02rem", md: "1.08rem" } },
+    "& .MuiTypography-body2": { fontSize: { xs: "0.98rem", md: "1.04rem" } },
+    "& .MuiTypography-subtitle1": { fontSize: { xs: "1.02rem", md: "1.08rem" } },
+    "& .MuiTypography-subtitle2": { fontSize: { xs: "0.98rem", md: "1.04rem" } },
+    "& .MuiTypography-caption": { fontSize: { xs: "0.94rem", md: "1.0rem" } },
+  } as const;
+
+  const ratingText = useMemo(() => {
+    const v = detail?.vote_average;
+    if (typeof v !== "number" || !Number.isFinite(v)) return "";
+    return v.toFixed(1);
+  }, [detail?.vote_average]);
+
+  const setTab = (tab: DetailTab) => {
+    setActiveTab(tab);
+  };
+
   return (
     <>
       <Navbar
@@ -237,7 +346,25 @@ export default function MovieDetail() {
       />
 
       <div style={{ backgroundColor: pageBg, minHeight: "calc(100vh - 200px)" }}>
-                <Container style={{ paddingTop: 18, paddingBottom: 64 }}>
+        <Box sx={{ position: "relative" }}>
+          {backdropSrc ? (
+            <Box
+              aria-hidden="true"
+              sx={{
+                position: "absolute",
+                inset: 0,
+                height: { xs: 260, sm: 320, md: 380 },
+                backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), ${pageBg}), url(${backdropSrc})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "saturate(1.05)",
+                pointerEvents: "none",
+              }}
+            />
+          ) : null}
+
+          <Container style={{ paddingTop: 18, paddingBottom: 64, position: "relative" }}>
+          <Box sx={{ ...bodyTextScaleSx }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <IconButton
               onClick={() => navigate(-1)}
@@ -266,11 +393,11 @@ export default function MovieDetail() {
             <Typography sx={{ color: muted }}>Movie not found.</Typography>
           ) : (
             <Stack spacing={3}>
-              <Box sx={{ display: "grid", gridTemplateColumns: MEDIA_GRID_COLUMNS as any, gap: 3, alignItems: "stretch" }}>
+              <Box sx={{ display: "grid", gridTemplateColumns: mediaGridColumns as any, gap: 3, alignItems: "stretch" }}>
                 <Box
                   sx={{
                     width: "100%",
-                    height: { xs: MEDIA_HEIGHTS.xs, sm: MEDIA_HEIGHTS.sm, md: MEDIA_HEIGHTS.md },
+                    height: { xs: largeHeights.xs, sm: largeHeights.sm, md: largeHeights.md },
                     borderRadius: 2,
                     overflow: "hidden",
                     backgroundColor: surface,
@@ -289,7 +416,7 @@ export default function MovieDetail() {
                 <Box
                   sx={{
                     width: "100%",
-                    height: { xs: MEDIA_HEIGHTS.xs, sm: MEDIA_HEIGHTS.sm, md: MEDIA_HEIGHTS.md },
+                    height: { xs: largeHeights.xs, sm: largeHeights.sm, md: largeHeights.md },
                     borderRadius: 2,
                     overflow: "hidden",
                     backgroundColor: surface,
@@ -312,64 +439,299 @@ export default function MovieDetail() {
                 </Box>
               </Box>
 
-              <Box sx={{ display: "grid", gridTemplateColumns: DETAILS_GRID_COLUMNS as any, gap: 3 }}>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="h4" sx={{ color: "var(--text-invert)", fontWeight: 900, letterSpacing: -0.3 }}>
-                    {detail.title}{year ? ` (${year})` : ""}
+              <Box sx={{ display: "grid", gridTemplateColumns: detailsGridColumnsLocal as any, gap: 3 }}>
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    backgroundColor: surface,
+                    border: `1px solid ${border}`,
+                    borderRadius: 2,
+                    p: { xs: 2, md: 3 },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+                    <Typography variant="h4" sx={{ color: "var(--text-invert)", fontWeight: 950, letterSpacing: -0.4, lineHeight: 1.15, minWidth: 0 }}>
+                      {detail.title}{year ? ` (${year})` : ""}
+                    </Typography>
+
+                    {ratingText ? (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flex: "0 0 auto" }} aria-label={`Rating ${ratingText}`}>
+                        <Typography
+                          sx={{
+                            color: "var(--text-invert)",
+                            fontWeight: 950,
+                            fontSize: { xs: 20, md: 28 },
+                            lineHeight: 1,
+                          }}
+                        >
+                          {ratingText}
+                        </Typography>
+                        <StarRoundedIcon sx={{ color: "var(--rating-gold)", fontSize: { xs: 30, md: 38 } }} />
+                      </Box>
+                    ) : null}
+                  </Box>
+
+                  {/* Single-line meta: YEAR | LANG | TAGLINE */}
+                  <Typography sx={{ mt: 0.75, color: "var(--surface-muted)", fontWeight: 800, fontSize: 16, letterSpacing: 0.2, lineHeight: 1.5 }}>
+                    {year ? <Box component="span">{year}</Box> : null}
+                    {year && String(detail?.original_language || "").trim() ? <Box component="span" sx={{ mx: 1 }}>|</Box> : null}
+                    {String(detail?.original_language || "").trim() ? (
+                      <Box component="span">{String(detail!.original_language).toUpperCase()}</Box>
+                    ) : null}
+                    {detail.tagline ? <Box component="span" sx={{ mx: 1 }}>|</Box> : null}
+                    {detail.tagline ? (
+                      <Box component="span" sx={{ color: muted, fontStyle: "italic", fontWeight: 600 }}>
+                        {detail.tagline}
+                      </Box>
+                    ) : null}
                   </Typography>
-                  {detail.tagline ? (
-                    <Typography sx={{ mt: 1, color: muted, fontStyle: "italic" }}>{detail.tagline}</Typography>
-                  ) : null}
 
-                  <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap" }}>
-                    {typeof detail.vote_average === "number" ? (
-                      <Chip label={`${detail.vote_average.toFixed(1)} `} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
+                  {/* Section tabs (click to reveal content) */}
+                  <Box
+                    role="tablist"
+                    aria-label="Movie detail sections"
+                    sx={{
+                      mt: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 2.5, md: 3.5 },
+                      borderBottom: `1px solid ${border}`,
+                      overflowX: "auto",
+                      WebkitOverflowScrolling: "touch",
+                      pb: 0.75,
+                    }}
+                  >
+                    {(
+                      [
+                        { key: "overview", label: "OVERVIEW" },
+                        { key: "cast", label: "CAST" },
+                        { key: "details", label: "DETAILS" },
+                      ] as Array<{ key: DetailTab; label: string }>
+                    ).map((t) => {
+                      const isActive = activeTab === t.key;
+                      return (
+                        <Box
+                          key={t.key}
+                          role="tab"
+                          aria-selected={isActive}
+                          tabIndex={0}
+                          onClick={() => setTab(t.key)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setTab(t.key);
+                            }
+                          }}
+                          sx={{
+                            cursor: "pointer",
+                            userSelect: "none",
+                            px: 0,
+                            py: 0.5,
+                            borderBottom: isActive ? `3px solid var(--accent-500)` : "3px solid transparent",
+                            color: isActive ? "var(--text-invert)" : "var(--surface-muted)",
+                            fontWeight: 950,
+                            fontSize: { xs: 15, md: 16 },
+                            letterSpacing: 0.8,
+                            whiteSpace: "nowrap",
+                            transition: "color 120ms ease, border-color 120ms ease",
+                            "&:hover": {
+                              color: "var(--text-invert)",
+                            },
+                            "&:focus-visible": {
+                              outline: `2px solid var(--accent-500)`,
+                              outlineOffset: "3px",
+                              borderRadius: 1,
+                            },
+                          }}
+                        >
+                          {t.label}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+
+                  {/* Tab contents (hidden unless selected) */}
+                  <Box ref={tabContentRef} sx={{ mt: 2, scrollMarginTop: "96px" }}>
+                    {activeTab === "overview" ? (
+                      <>
+                        {/* runtime and director display removed per request */}
+
+                        <Box sx={{ ...blockSx, mt: 1.5 }}>
+                          <Typography sx={{ color: "var(--text-invert)", fontWeight: 950, mb: 1, fontSize: { xs: 16, md: 20 } }}>
+                            Overview
+                          </Typography>
+                          <Typography sx={{ color: muted, lineHeight: 1.75, whiteSpace: "pre-wrap" }}>
+                            {String(detail.overview || "").trim() ? detail.overview : "(Plot not available)"}
+                          </Typography>
+                        </Box>
+                      </>
                     ) : null}
-                    {typeof detail.runtime === "number" ? (
-                      <Chip label={`${detail.runtime} min`} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
+
+                    {activeTab === "cast" ? (
+                      topCast.length ? (
+                        <>
+                          <Typography sx={{ color: "var(--text-invert)", fontWeight: 950, mb: 1, fontSize: { xs: 16, md: 20 } }}>
+                            Cast
+                          </Typography>
+
+                          <Box sx={{ ...blockSx }}>
+                            <Slider
+                              dots={false}
+                              infinite={false}
+                              speed={400}
+                              slidesToShow={4}
+                              slidesToScroll={1}
+                              arrows={true}
+                              responsive={[
+                                { breakpoint: 1200, settings: { slidesToShow: 3 } },
+                                { breakpoint: 900, settings: { slidesToShow: 2 } },
+                                { breakpoint: 600, settings: { slidesToShow: 1 } },
+                              ]}
+                            >
+                              {topCast.slice(0, 12).map((m) => (
+                                <div key={m.id} style={{ padding: "6px" }}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                      border: `1px solid ${border}`,
+                                      borderRadius: 2,
+                                      p: 1,
+                                      backgroundColor: "transparent",
+                                      minWidth: 0,
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: 84,
+                                        height: 84,
+                                        borderRadius: 10,
+                                        overflow: "hidden",
+                                        background: surface,
+                                        flex: "0 0 84px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      {m.profile_path ? (
+                                        <img
+                                          src={tmdbImage(m.profile_path, "w342")}
+                                          alt={m.name}
+                                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        />
+                                      ) : (
+                                        <div
+                                          style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            display: "grid",
+                                            placeItems: "center",
+                                            color: "var(--text-invert)",
+                                            fontSize: 14,
+                                          }}
+                                        >
+                                          {m.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .slice(0, 2)
+                                            .join("")}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div style={{ minWidth: 0 }}>
+                                      <Typography sx={{ color: "var(--text-invert)", fontWeight: 900, lineHeight: 1.2 }} noWrap>
+                                        {m.name}
+                                      </Typography>
+                                      {m.character ? (
+                                        <Typography sx={{ color: muted, fontSize: 13, mt: 0.25, lineHeight: 1.4 }} noWrap>
+                                          {m.character}
+                                        </Typography>
+                                      ) : (
+                                        <Typography sx={{ color: muted, fontSize: 13, mt: 0.25, lineHeight: 1.4 }}>
+                                          {"\u00A0"}
+                                        </Typography>
+                                      )}
+                                    </div>
+                                  </Box>
+                                </div>
+                              ))}
+                            </Slider>
+                          </Box>
+                        </>
+                      ) : (
+                        <Typography sx={{ color: muted, lineHeight: 1.6 }}>
+                          Cast not available.
+                        </Typography>
+                      )
                     ) : null}
-                    {directors.length ? (
-                      <Chip
-                        label={`Director: ${directors.slice(0, 2).join(", ")}`}
-                        sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }}
-                      />
+
+                    {activeTab === "details" ? (
+                      <>
+                        {Array.isArray(detail.genres) && detail.genres.length ? (
+                          <Box sx={{ ...blockSx }}>
+                            <Typography sx={{ color: muted, fontWeight: 900, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase" }}>
+                              Genres
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
+                              {detail.genres.slice(0, 10).map((g) => (
+                                <Box
+                                  component="span"
+                                  key={g.id}
+                                  sx={{
+                                    ...genreCapsuleSx(g.name || ""),
+                                    mr: 0.5,
+                                    mb: 0.5,
+                                  }}
+                                >
+                                  {g.name}
+                                </Box>
+                              ))}
+                            </Stack>
+                          </Box>
+                        ) : null}
+
+                        {detailsRows.length ? (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography sx={{ color: muted, fontWeight: 900, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase" }}>
+                              Details
+                            </Typography>
+                            <Box
+                              sx={{
+                                mt: 1,
+                                display: "grid",
+                                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                                gap: 2,
+                              }}
+                            >
+                              {detailsRows.map((r) => (
+                                <Box key={r.label} sx={{ display: "flex", flexDirection: "column", gap: 0.5, p: 0.5 }}>
+                                  <Typography sx={{ color: muted, fontSize: 12, fontWeight: 800, letterSpacing: 0.4, textTransform: "uppercase" }}>
+                                    {r.label}
+                                  </Typography>
+                                  <Typography sx={{ color: "var(--text-invert)", fontWeight: 900 }}>
+                                    {r.value}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        ) : null}
+                      </>
                     ) : null}
-                  </Stack>
+                  </Box>
 
-                  {Array.isArray(detail.genres) && detail.genres.length ? (
-                    <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: "wrap" }}>
-                      {detail.genres.slice(0, 10).map((g) => (
-                        <Chip key={g.id} label={g.name} sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }} />
-                      ))}
-                    </Stack>
-                  ) : null}
+                  
 
-                  <Divider sx={{ my: 2, borderColor: border }} />
-
-                  <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1, fontSize: { xs: 15, md: 18 } }}>Overview</Typography>
-                  <Typography sx={{ color: muted, lineHeight: 1.7 }}>
-                    {String(detail.overview || "").trim() ? detail.overview : "(Plot not available)"}
-                  </Typography>
-
-                  {topCast.length ? (
-                    <>
-                      <Divider sx={{ my: 2, borderColor: border }} />
-                      <Typography sx={{ color: "var(--text-invert)", fontWeight: 800, mb: 1, fontSize: { xs: 15, md: 18 } }}>Cast</Typography>
-                      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                        {topCast.map((m) => (
-                          <Chip
-                            key={m.id}
-                            label={m.character ? `${m.name}  ${m.character}` : m.name}
-                            sx={{ ...CHIP_SX, backgroundColor: surface, color: "var(--text-invert)" }}
-                          />
-                        ))}
-                      </Stack>
-                    </>
-                  ) : null}
+                  
                 </Box>
 
-                <Box sx={{ width: { xs: "100%", md: 360 }, backgroundColor: surface, border: `1px solid ${border}`, borderRadius: 2, p: 2, mt: { md: 2 } }}>
+                <Box sx={{ width: { xs: "100%", md: 420 }, backgroundColor: surface, border: `1px solid ${border}`, borderRadius: 2, p: 2 }}>
                   <Typography sx={{ color: "var(--text-invert)", fontWeight: 900, mb: 1 }}>Where to watch</Typography>
+
+                  <Divider sx={{ mb: 2, borderColor: border }} />
 
                   {/* Removed external 'Open provider page' link per UX request */}
 
@@ -381,12 +743,14 @@ export default function MovieDetail() {
                           <ProviderRow providers={flatrate} />
                         </Box>
                       ) : null}
+                      {flatrate.length && (rent.length || buy.length) ? <Divider sx={{ borderColor: border }} /> : null}
                       {rent.length ? (
                         <Box>
                           <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Rent</Typography>
                           <ProviderRow providers={rent} />
                         </Box>
                       ) : null}
+                      {rent.length && buy.length ? <Divider sx={{ borderColor: border }} /> : null}
                       {buy.length ? (
                         <Box>
                           <Typography sx={{ color: muted, fontWeight: 800, mb: 1 }}>Buy</Typography>
@@ -401,7 +765,9 @@ export default function MovieDetail() {
               </Box>
             </Stack>
           )}
-        </Container>
+          </Box>
+          </Container>
+        </Box>
       </div>
 
       <Footer />
@@ -447,6 +813,16 @@ function ProviderRow({ providers }: { providers: WatchProvider[] }) {
 
 function Container({ children, style = {} }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <div style={{ width: "100%", maxWidth: 1360, margin: "0 auto", padding: "0 20px", ...style }}>{children}</div>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 1680,
+        margin: "0 auto",
+        padding: "0 24px",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
   );
 }

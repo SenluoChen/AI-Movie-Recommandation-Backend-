@@ -11,7 +11,7 @@ export default function Footer() {
       sx={{
         backgroundColor: 'var(--brand-900)',
         borderTop: '4px solid var(--accent-500)',
-        padding: '64px 20px 44px',
+        padding: '56px 20px 40px',
         mt: 0,
       }}
     >
@@ -23,7 +23,7 @@ export default function Footer() {
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'space-around',
-          gap: 6,
+          gap: 4,
           maxWidth: 1200,
           margin: '0 auto',
         }}
@@ -35,13 +35,13 @@ export default function Footer() {
           <Typography
             fontWeight="bold"
             gutterBottom
-            sx={{ color: 'var(--surface-2)', fontSize: 18 }}
+            sx={{ color: 'var(--surface-2)', fontSize: 16 }}
           >
             About Popcorn
           </Typography>
           {['About the platform', 'How recommendations work', 'FAQ', 'Contact us'].map(
             (text) => (
-              <Typography key={text} sx={{ my: 0.5 }}>
+              <Typography key={text} sx={{ my: 0.25 }}>
                 <Link
                   href="#"
                   underline="hover"
@@ -65,12 +65,12 @@ export default function Footer() {
           <Typography
             fontWeight="bold"
             gutterBottom
-            sx={{ color: 'var(--surface-2)', fontSize: 18 }}
+            sx={{ color: 'var(--surface-2)', fontSize: 16 }}
           >
             Help & Support
           </Typography>
           {['Getting started', 'Report an issue', 'Feature requests', 'Support'].map((text) => (
-            <Typography key={text} sx={{ my: 0.5 }}>
+            <Typography key={text} sx={{ my: 0.25 }}>
               <Link
                 href="#"
                 underline="hover"
@@ -93,12 +93,12 @@ export default function Footer() {
           <Typography
             fontWeight="bold"
             gutterBottom
-            sx={{ color: 'var(--surface-2)', fontSize: 18 }}
+            sx={{ color: 'var(--surface-2)', fontSize: 16 }}
           >
             Explore
           </Typography>
           {['Trending picks', 'Top rated', 'Mood search', 'Surprise me'].map((text) => (
-            <Typography key={text} sx={{ my: 0.5 }}>
+            <Typography key={text} sx={{ my: 0.25 }}>
               <Link
                 href="#"
                 underline="hover"
@@ -121,12 +121,12 @@ export default function Footer() {
           <Typography
             fontWeight="bold"
             gutterBottom
-            sx={{ color: 'var(--surface-2)', fontSize: 18 }}
+            sx={{ color: 'var(--surface-2)', fontSize: 16 }}
           >
             Legal
           </Typography>
           {['Data source (TMDb)', 'Disclaimer', 'Privacy policy', 'Terms of use'].map((text) => (
-            <Typography key={text} sx={{ my: 0.5 }}>
+            <Typography key={text} sx={{ my: 0.25 }}>
               <Link
                 href="#"
                 underline="hover"
@@ -150,7 +150,7 @@ export default function Footer() {
         sx={{
           height: 1,
           backgroundColor: 'rgba(255,255,255,0.06)',
-          my: 5,
+          my: 4,
           maxWidth: 1200,
           mx: 'auto',
         }}
@@ -164,7 +164,7 @@ export default function Footer() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 3,
+          gap: 2,
         }}
       >
         {/*
@@ -172,10 +172,10 @@ export default function Footer() {
  */}
         <Box sx={{ display: 'flex', gap: 3 }}>
           <FacebookIcon
-            sx={{ color: 'var(--surface-2)', fontSize: 32, cursor: 'pointer', opacity: 0.95, '&:hover': { color: 'var(--accent-500)' } }}
+            sx={{ color: 'var(--surface-2)', fontSize: 28, cursor: 'pointer', opacity: 0.95, '&:hover': { color: 'var(--accent-500)' } }}
           />
           <InstagramIcon
-            sx={{ color: 'var(--surface-2)', fontSize: 32, cursor: 'pointer', opacity: 0.95, '&:hover': { color: 'var(--accent-500)' } }}
+            sx={{ color: 'var(--surface-2)', fontSize: 28, cursor: 'pointer', opacity: 0.95, '&:hover': { color: 'var(--accent-500)' } }}
           />
         </Box>
 
@@ -187,15 +187,15 @@ export default function Footer() {
  */}
       <Box
         sx={{
-          mt: 5,
+          mt: 4,
           textAlign: 'center',
-          fontSize: 13,
+          fontSize: 12,
           color: 'var(--surface-2)',
           opacity: 0.95,
         }}
       >
         <div>© 2025 Popcorn. Movie recommendations powered by AI.</div>
-        <div style={{ marginTop: 6 }}>
+        <div style={{ marginTop: 4 }}>
           Data provided by TMDb. This product uses the TMDb API but is not endorsed or certified by TMDb.
         </div>
       </Box>

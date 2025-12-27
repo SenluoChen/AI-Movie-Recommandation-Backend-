@@ -289,6 +289,39 @@ h1, h2 {
   padding: 14px;
 }
 
+.pc-movie-submeta {
+  margin-top: 6px;
+  color: var(--surface-muted);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  line-height: 1.5;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pc-movie-meta-part {
+  flex: 0 0 auto;
+}
+
+.pc-movie-meta-sep {
+  flex: 0 0 auto;
+  opacity: 0.9;
+}
+
+.pc-movie-tagline {
+  color: var(--surface-muted);
+  font-style: italic;
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pc-movie-title {
   font-weight: 900;
   font-size: 15px;

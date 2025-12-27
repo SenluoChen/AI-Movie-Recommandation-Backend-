@@ -10,7 +10,9 @@ export type MovieRecommendation = {
   posterUrl?: string | null;
   trailerUrl?: string | null;
   release_date?: string;
+  original_language?: string;
   vote_average?: number;
+  tagline?: string;
 };
 
 function normalize(text: string) {
@@ -103,6 +105,7 @@ function asRecommendations(movies: TmdbMovie[]): MovieRecommendation[] {
     overview: m.overview,
     poster_path: m.poster_path,
     release_date: m.release_date,
+    original_language: m.original_language,
     vote_average: m.vote_average,
   }));
 }
