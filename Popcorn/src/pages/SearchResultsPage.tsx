@@ -243,7 +243,7 @@ export default function SearchResultsPage() {
       />
 
       <div style={{ backgroundColor: pageBg }}>
-        <Container style={{ paddingTop: 18, paddingBottom: 64 }}>
+        <Container style={{ paddingTop: 36, paddingBottom: 72 }}>
           {results.length > 0 ? (
             <SectionHeader
               title={query.trim() ? `Search results: ${query.trim()}` : ""}
@@ -252,7 +252,7 @@ export default function SearchResultsPage() {
           ) : null}
 
           {results.length === 0 ? (
-            <div style={{ marginTop: 6 }}>
+            <div style={{ marginTop: 18 }}>
                 <SectionHeader
                   title="Popular recommendations"
                   subtitle="Top-rated movies (10)"
@@ -438,8 +438,8 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
         display: "flex",
         alignItems: "baseline",
         justifyContent: "space-between",
-        marginBottom: 10,
-        gap: 12,
+        marginBottom: 20,
+        gap: 14,
       }}
     >
       <div style={{ minWidth: 0 }}>

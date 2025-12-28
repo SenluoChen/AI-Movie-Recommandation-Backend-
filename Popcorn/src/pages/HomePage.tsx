@@ -168,7 +168,7 @@ export default function HomePage() {
         }}
       />
 
-      <div style={{ backgroundColor: pageBg }}>
+      <div className="pc-home" style={{ backgroundColor: pageBg }}>
         {/* Netflix-like hero */}
         <div
           style={{
@@ -211,8 +211,8 @@ export default function HomePage() {
               opacity: heroPlaying ? 0.25 : 1,
             }}
           />
-          <Container style={{ paddingTop: 96, paddingBottom: 36, position: "relative" }}>
-            <div style={{ maxWidth: 560, opacity: heroPlaying ? 0 : 1, pointerEvents: heroPlaying ? "none" : "auto" }}>
+          <Container style={{ paddingTop: 112, paddingBottom: 56, position: "relative" }}>
+            <div style={{ maxWidth: 760, opacity: heroPlaying ? 0 : 1, pointerEvents: heroPlaying ? "none" : "auto" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div
                   style={{
@@ -264,11 +264,11 @@ export default function HomePage() {
 
               <div
                 style={{
-                  marginTop: 14,
+                  marginTop: 18,
                   color: "var(--text-invert)",
-                  opacity: 0.92,
-                  fontSize: 16,
-                  lineHeight: 1.55,
+                  opacity: 0.94,
+                  fontSize: 18,
+                  lineHeight: 1.6,
                 }}
               >
                 {featured
@@ -276,7 +276,7 @@ export default function HomePage() {
                   : "Loading popular picks…"}
               </div>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 18, marginTop: 22, flexWrap: "wrap" }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -287,16 +287,16 @@ export default function HomePage() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 10,
-                    height: 44,
-                    padding: "0 18px",
-                    borderRadius: 8,
+                    gap: 12,
+                    height: 50,
+                    padding: "0 20px",
+                    borderRadius: 10,
                     border: "1px solid rgba(255,255,255,0.12)",
                     background: "var(--text-invert)",
                     color: "var(--brand-900)",
                     fontWeight: 900,
                     cursor: featuredTrailerEmbed ? "pointer" : "default",
-                    opacity: featuredTrailerEmbed ? 1 : 0.65,
+                    opacity: featuredTrailerEmbed ? 1 : 0.75,
                   }}
                 >
                   Play
@@ -314,10 +314,10 @@ export default function HomePage() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 10,
-                    height: 44,
-                    padding: "0 18px",
-                    borderRadius: 8,
+                    gap: 12,
+                    height: 50,
+                    padding: "0 20px",
+                    borderRadius: 10,
                     border: "1px solid rgba(255,255,255,0.18)",
                     background: "rgba(255,255,255,0.12)",
                     color: "var(--text-invert)",
@@ -336,8 +336,8 @@ export default function HomePage() {
             style={{
               position: "absolute",
               right: 0,
-              bottom: 42,
-              padding: "10px 12px",
+              bottom: 92,
+              padding: "12px 14px",
               borderLeft: "3px solid rgba(255,255,255,0.55)",
               background: "rgba(0,0,0,0.30)",
               color: "var(--text-invert)",
@@ -352,61 +352,61 @@ export default function HomePage() {
         </div>
 
         {/* Popular movies grid */}
-        <Container style={{ paddingTop: 18, paddingBottom: 20 }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-invert)", letterSpacing: "-0.02em" }}>
-            Popular movies
-          </div>
-          <div style={{ fontSize: 13, color: surfaceMuted, marginTop: 6 }}>
-            Top 10 picks
-          </div>
+        <div className="pc-home-popular">
+          <Container style={{ paddingTop: 56, paddingBottom: 96, maxWidth: 1680 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-invert)", letterSpacing: "-0.02em" }}>
+              Popular movies
+            </div>
+            <div style={{ fontSize: 14, color: surfaceMuted, marginTop: 8, lineHeight: 1.5 }}>
+              Top 10 picks
+            </div>
 
-          <div className="pc-movie-grid" style={{ marginTop: 14, marginBottom: 0 }}>
-            {top10.map((m) => {
-              const title = String(m?.title || "").trim();
-              const posterUrl = String(m?.posterUrl || "").trim();
+            <div className="pc-movie-grid" style={{ marginTop: 18, marginBottom: 0 }}>
+              {top10.map((m) => {
+                const title = String(m?.title || "").trim();
+                const posterUrl = String(m?.posterUrl || "").trim();
 
-              return (
-                <div
-                  key={String(m.imdbId)}
-                  className="pc-movie-card"
-                  style={{ cursor: title ? "pointer" : "default" }}
-                  onClick={() => {
-                    const imdb = String(m.imdbId || "").trim();
-                    const tmdbId = imdb ? imdbToTmdbId.get(imdb) : undefined;
-                    if (typeof tmdbId === "number" && Number.isFinite(tmdbId) && tmdbId > 0) {
-                      navigate(`/movie/${tmdbId}`);
-                      return;
-                    }
+                return (
+                  <div
+                    key={String(m.imdbId)}
+                    className="pc-movie-card"
+                    style={{ cursor: title ? "pointer" : "default" }}
+                    onClick={() => {
+                      const imdb = String(m.imdbId || "").trim();
+                      const tmdbId = imdb ? imdbToTmdbId.get(imdb) : undefined;
+                      if (typeof tmdbId === "number" && Number.isFinite(tmdbId) && tmdbId > 0) {
+                        navigate(`/movie/${tmdbId}`);
+                        return;
+                      }
 
-                    // Fallback: still let users move forward
-                    const q = title;
-                    if (!q) return;
-                    navigate(`/search?q=${encodeURIComponent(q)}`);
-                  }}
-                  title={title}
-                >
-                  <div className="pc-movie-poster" style={{ background: "var(--surface-muted)" }}>
-                    {posterUrl ? (
-                      <img
-                        src={posterUrl}
-                        alt={title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : null}
-                  </div>
-                  <div className="pc-movie-meta">
-                    <div className="pc-movie-title" style={{ color: "var(--brand-900)" }}>
-                      {title || "Untitled"}
+                      // Fallback: still let users move forward
+                      const q = title;
+                      if (!q) return;
+                      navigate(`/search?q=${encodeURIComponent(q)}`);
+                    }}
+                    title={title}
+                  >
+                    <div className="pc-movie-poster" style={{ background: "var(--surface-muted)" }}>
+                      {posterUrl ? (
+                        <img src={posterUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : null}
+                    </div>
+                    <div className="pc-movie-meta">
+                      <div className="pc-movie-title" style={{ color: "var(--brand-900)" }}>
+                        {title || "Untitled"}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </Container>
-      </div>
+                );
+              })}
+            </div>
+          </Container>
+        </div>
 
-      <Footer />
+        <div style={{ paddingTop: 24, backgroundColor: pageBg }}>
+          <Footer />
+        </div>
+      </div>
     </>
   );
 }
@@ -422,9 +422,9 @@ function Container({
     <div
       style={{
         width: "100%",
-        maxWidth: 1200,
+        maxWidth: 1520,
         margin: "0 auto",
-        padding: "0 20px",
+        padding: "0 32px",
         ...style,
       }}
     >

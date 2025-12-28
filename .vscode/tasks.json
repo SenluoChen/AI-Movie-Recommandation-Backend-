@@ -43,12 +43,14 @@
 		{
 			"label": "Build frontend (npm run build)",
 			"type": "shell",
-			"command": "powershell",
+			"command": "npm",
 			"args": [
-				"-NoProfile",
-				"-Command",
-				"Set-Location -LiteralPath 'c:\\Users\\Louis\\Visual Studio\\Popcorn\\Popcorn'; npm run build"
+				"run",
+				"build"
 			],
+			"options": {
+				"cwd": "c:\\Users\\Louis\\Visual Studio\\Popcorn\\Popcorn"
+			},
 			"isBackground": false
 		}
 	]
