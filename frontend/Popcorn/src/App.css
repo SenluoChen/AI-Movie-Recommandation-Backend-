@@ -398,14 +398,14 @@ h1, h2 {
 
 .pc-movie-title {
   font-weight: 900;
-  font-size: 20px;
+  font-size: 19px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .pc-home .pc-movie-title {
-  font-size: 22px;
+  font-size: 21px;
 }
 
 .pc-home .pc-movie-overview {
